@@ -509,25 +509,46 @@ function setupInstallPrompt() {
 
   // ---------- Init ----------
   function init() {
+    // Always release the splash independently of optional modules.
+    // This prevents one initialization error from making the first screen appear frozen.
+    const bootStart = Date.now();
+    const releaseSplash = () => {
+      try { hideSplash(); } catch (e) {}
+    };
+    requestAnimationFrame(() => requestAnimationFrame(releaseSplash));
+    setTimeout(releaseSplash, 750);
+
     // Initialize storage (runs migration if needed)
-    storage.init();
-    storage.subscribe(onDataChange);
+    try {
+      storage.init();
+      storage.subscribe(onDataChange);
+    } catch (e) {
+      console.error('[Init] storage error', e);
+    }
 
     // Apply theme
-    SPSettings.applyTheme();
-    updateTopbar();
+    try {
+      SPSettings.applyTheme();
+      updateTopbar();
+    } catch (e) {
+      console.error('[Init] theme error', e);
+    }
 
-    // Initialize all modules
-    SPCalendar.init();
-    SPAttendance.init();
-    SPSalary.init();
-    SPReports.init();
-    SPSettings.init();
+    // Initialize modules independently so one optional feature cannot stop the app.
+    const safeInit = (name, fn) => {
+      try { fn(); }
+      catch (e) { console.error('[Init] ' + name + ' error', e); }
+    };
+    safeInit('calendar', () => SPCalendar.init());
+    safeInit('attendance', () => SPAttendance.init());
+    safeInit('salary', () => SPSalary.init());
+    safeInit('reports', () => SPReports.init());
+    safeInit('settings', () => SPSettings.init());
 
     // First paint: render only the dashboard.
     // Other pages are rendered when the user opens them, preventing a heavy
     // first-load freeze on mobile/PWA.
-    renderDashboard();
+    safeInit('dashboard', renderDashboard);
 
     // Prepare secondary views after the first frame, without blocking the UI.
     const warmSecondaryViews = () => {
