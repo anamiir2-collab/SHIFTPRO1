@@ -132,26 +132,11 @@
     $('#inpCycleDay').value =
       s.cycleDay || 26;
 
-    $('#inpTheme').value =
-      s.theme || 'auto';
+    const themeInput = $('#inpTheme');
+    if (themeInput) themeInput.value = s.theme || 'auto';
 
     $('#inpFontSize').value =
       s.fontSize || 'medium';
-
-    $('#inpNotifyCheckIn').checked =
-      !!s.notifyCheckIn;
-
-    $('#inpNotifyCheckInTime').value =
-      s.notifyCheckInTime || '07:00';
-
-    $('#inpNotifyCheckOut').checked =
-      !!s.notifyCheckOut;
-
-    $('#inpNotifyCheckOutTime').value =
-      s.notifyCheckOutTime || '19:00';
-
-    $('#inpNotifyShiftEnd').checked =
-      !!s.notifyShiftEnd;
 
     $('#settingsOverlay').classList.add('show');
     $('#settingsSheet').classList.add('show');
@@ -218,25 +203,10 @@
       cycleDay,
 
       theme:
-        $('#inpTheme').value,
+        ($('#inpTheme') ? $('#inpTheme').value : (storage.getSettings().theme || 'auto')),
 
       fontSize:
-        $('#inpFontSize').value,
-
-      notifyCheckIn:
-        $('#inpNotifyCheckIn').checked,
-
-      notifyCheckInTime:
-        $('#inpNotifyCheckInTime').value || '07:00',
-
-      notifyCheckOut:
-        $('#inpNotifyCheckOut').checked,
-
-      notifyCheckOutTime:
-        $('#inpNotifyCheckOutTime').value || '19:00',
-
-      notifyShiftEnd:
-        $('#inpNotifyShiftEnd').checked
+        $('#inpFontSize').value
     };
 
     if (window.SPUndoRedo) SPUndoRedo.pushUndo("save settings");
@@ -1627,13 +1597,140 @@
   }
 
   // =========================================================
+  // App Control
+  // =========================================================
+
+  function openControlSheet() {
+    const overlay = $('#controlOverlay');
+    const sheet = $('#controlSheet');
+    if (!overlay || !sheet) return;
+    const label = $('#settingsLangLabel');
+    if (label) label.textContent = (window.SPi18n ? SPi18n.getLocale() : 'ar').toUpperCase();
+    overlay.classList.add('show');
+    sheet.classList.add('show');
+  }
+
+  function closeControlSheet() {
+    $('#controlOverlay')?.classList.remove('show');
+    $('#controlSheet')?.classList.remove('show');
+  }
+
+  // =========================================================
+  // Notifications & Reminders
+  // =========================================================
+
+  function openNotificationsSheet() {
+    const n = window.SPNotifications ? SPNotifications.getSettings() : {};
+    const enabled = $('#notifEnabled');
+    const shift = $('#notifShiftReminder');
+    const mins = $('#notifShiftMinutes');
+    const daily = $('#notifDailySummary');
+    const dailyTime = $('#notifDailySummaryTime');
+    const forget = $('#notifForgetCheckoutHours');
+
+    if (enabled) enabled.checked = !!n.enabled;
+    if (shift) shift.checked = n.shiftReminder !== false;
+    if (mins) mins.value = String(n.shiftReminderMinutes || 30);
+    if (daily) daily.checked = n.dailySummary !== false;
+    if (dailyTime) dailyTime.value = n.dailySummaryTime || '20:00';
+    if (forget) forget.value = String(n.forgetCheckoutHours || 12);
+
+    updateNotificationPermissionUI();
+    $('#notificationsOverlay')?.classList.add('show');
+    $('#notificationsSheet')?.classList.add('show');
+  }
+
+  function closeNotificationsSheet() {
+    $('#notificationsOverlay')?.classList.remove('show');
+    $('#notificationsSheet')?.classList.remove('show');
+  }
+
+  function updateNotificationPermissionUI() {
+    const state = $('#notificationPermissionState');
+    const btn = $('#requestNotificationBtn');
+    if (!state) return;
+    if (!('Notification' in window)) {
+      state.textContent = 'الإشعارات غير مدعومة على هذا المتصفح';
+      if (btn) btn.hidden = true;
+      return;
+    }
+    const p = Notification.permission;
+    state.textContent =
+      p === 'granted' ? 'حالة الإشعارات: مفعلة' :
+      p === 'denied' ? 'حالة الإشعارات: مرفوضة من المتصفح' :
+      'حالة الإشعارات: تحتاج إذن';
+    if (btn) {
+      btn.hidden = p === 'granted';
+      btn.textContent = p === 'denied' ? 'افتح إعدادات المتصفح' : 'تفعيل';
+    }
+  }
+
+  async function requestNotificationsPermission() {
+    if (!window.SPNotifications) return;
+    const granted = await SPNotifications.requestPermission();
+    updateNotificationPermissionUI();
+    if (granted) {
+      toast('تم تفعيل إشعارات ShiftPro', 'success');
+    } else {
+      toast('لم يتم منح إذن الإشعارات', 'warning');
+    }
+  }
+
+  function saveNotificationsSettings() {
+    if (!window.SPNotifications) {
+      toast('موديول الإشعارات غير متاح', 'error');
+      return;
+    }
+    const enabled = !!$('#notifEnabled')?.checked;
+    const shiftReminder = !!$('#notifShiftReminder')?.checked;
+    const shiftReminderMinutes = Number($('#notifShiftMinutes')?.value) || 30;
+    const dailySummary = !!$('#notifDailySummary')?.checked;
+    const dailySummaryTime = $('#notifDailySummaryTime')?.value || '20:00';
+    const forgetCheckoutHours = Number($('#notifForgetCheckoutHours')?.value) || 12;
+
+    SPNotifications.saveSettings({
+      enabled,
+      shiftReminder,
+      shiftReminderMinutes,
+      dailySummary,
+      dailySummaryTime,
+      forgetCheckoutHours
+    });
+
+    if (enabled) {
+      SPNotifications.requestPermission().then((granted) => {
+        if (granted) SPNotifications.start();
+        else {
+          const input = $('#notifEnabled');
+          if (input) input.checked = false;
+          SPNotifications.saveSettings({ enabled: false });
+        }
+        updateNotificationPermissionUI();
+      });
+    } else {
+      SPNotifications.stop();
+    }
+
+    toast('تم حفظ التذكيرات والإشعارات', 'success');
+    updateNotificationPermissionUI();
+  }
+
+  // =========================================================
   // Generic sheet openers
   // =========================================================
 
   function openSheetByName(name) {
     switch (name) {
+      case 'control':
+        openControlSheet();
+        break;
+
       case 'settings':
         openSettingsSheet();
+        break;
+
+      case 'notifications':
+        openNotificationsSheet();
         break;
 
       case 'shifts':
@@ -1669,11 +1766,38 @@
     const themeBtn = $('#themeBtn');
     if (themeBtn) themeBtn.addEventListener('click', onClickOnce(cycleTheme));
 
+    // App control
+    const settingsQuickBtn = $('#settingsQuickBtn');
+    if (settingsQuickBtn) settingsQuickBtn.addEventListener('click', onClickOnce(openControlSheet));
+
+    const closeControlBtn = $('#closeControlBtn');
+    if (closeControlBtn) closeControlBtn.addEventListener('click', closeControlSheet);
+    const controlOverlay = $('#controlOverlay');
+    if (controlOverlay) controlOverlay.addEventListener('click', closeControlSheet);
+
     const settingsThemeBtn = $('#settingsThemeBtn');
     if (settingsThemeBtn) settingsThemeBtn.addEventListener('click', onClickOnce(cycleTheme));
+    const settingsLangBtn = $('#settingsLangBtn');
+    if (settingsLangBtn) settingsLangBtn.addEventListener('click', onClickOnce(() => {
+      if (window.SPi18n) SPi18n.toggleLocale();
+      const label = $('#settingsLangLabel');
+      if (label) label.textContent = (window.SPi18n ? SPi18n.getLocale() : 'ar').toUpperCase();
+      toast('تم تغيير اللغة', 'info');
+    }));
+    const settingsUndoBtn = $('#settingsUndoBtn');
+    if (settingsUndoBtn) settingsUndoBtn.addEventListener('click', onClickOnce(() => window.SPUndoRedo && SPUndoRedo.undo()));
+    const settingsRedoBtn = $('#settingsRedoBtn');
+    if (settingsRedoBtn) settingsRedoBtn.addEventListener('click', onClickOnce(() => window.SPUndoRedo && SPUndoRedo.redo()));
 
-    const settingsQuickBtn = $('#settingsQuickBtn');
-    if (settingsQuickBtn) settingsQuickBtn.addEventListener('click', () => openSettingsSheet());
+    // Notifications
+    const closeNotificationsBtn = $('#closeNotificationsBtn');
+    if (closeNotificationsBtn) closeNotificationsBtn.addEventListener('click', closeNotificationsSheet);
+    const notificationsOverlay = $('#notificationsOverlay');
+    if (notificationsOverlay) notificationsOverlay.addEventListener('click', closeNotificationsSheet);
+    const requestNotificationBtn = $('#requestNotificationBtn');
+    if (requestNotificationBtn) requestNotificationBtn.addEventListener('click', onClickOnce(requestNotificationsPermission));
+    const saveNotificationsBtn = $('#saveNotificationsBtn');
+    if (saveNotificationsBtn) saveNotificationsBtn.addEventListener('click', onClickOnce(saveNotificationsSettings));
 
     // Settings
     $('#saveSettingsBtn')
@@ -1980,6 +2104,10 @@
     applyTheme,
     openSettingsSheet,
     closeSettingsSheet,
+    openControlSheet,
+    closeControlSheet,
+    openNotificationsSheet,
+    closeNotificationsSheet,
     openSheetByName,
 
     // Expose these for other modules if needed
