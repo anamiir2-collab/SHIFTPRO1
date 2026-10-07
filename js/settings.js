@@ -1665,12 +1665,15 @@
   function init() {
     applyTheme();
 
-    // Theme
-    $('#themeBtn')
-      .addEventListener(
-        'click',
-        onClickOnce(cycleTheme)
-      );
+    // Theme / app controls are now inside Settings
+    const themeBtn = $('#themeBtn');
+    if (themeBtn) themeBtn.addEventListener('click', onClickOnce(cycleTheme));
+
+    const settingsThemeBtn = $('#settingsThemeBtn');
+    if (settingsThemeBtn) settingsThemeBtn.addEventListener('click', onClickOnce(cycleTheme));
+
+    const settingsQuickBtn = $('#settingsQuickBtn');
+    if (settingsQuickBtn) settingsQuickBtn.addEventListener('click', () => openSettingsSheet());
 
     // Settings
     $('#saveSettingsBtn')
