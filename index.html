@@ -52,23 +52,11 @@
     <span class="name" id="workerName">—</span>
   </div>
   <div class="actions">
-    <button class="icon-btn" id="searchBtn" data-i18n-aria="header.search_aria" aria-label="بحث">
+    <button class="icon-btn" id="searchBtn" data-i18n-aria="header.search_aria" aria-label="بحث" title="بحث">
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
     </button>
-    <button class="icon-btn" id="privacyBtn" data-i18n-aria="privacy.toggle_aria" aria-label="إخفاء/إظهار الأرقام المالية" title="Privacy Mode">
-      <svg viewBox="0 0 24 24" id="privacyIcon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-    </button>
-    <button class="icon-btn" id="undoBtn" data-i18n-aria="msg.undo" aria-label="تراجع" title="تراجع (Ctrl+Z)" hidden>
-      <svg viewBox="0 0 24 24"><path d="M9 14l-4-4 4-4M5 10h9a5 5 0 0 1 0 10h-3"></path></svg>
-    </button>
-    <button class="icon-btn" id="redoBtn" data-i18n-aria="msg.redo" aria-label="إعادة" title="إعادة (Ctrl+Y)" hidden>
-      <svg viewBox="0 0 24 24"><path d="M15 14l4-4-4-4M19 10h-9a5 5 0 0 0 0 10h3"></path></svg>
-    </button>
-    <button class="icon-btn" id="langBtn" data-i18n-aria="header.language_toggle_aria" aria-label="تبديل اللغة" title="AR / EN">
-      <span class="lang-label" id="langLabel">AR</span>
-    </button>
-    <button class="icon-btn" id="themeBtn" data-i18n-aria="header.theme_toggle_aria" aria-label="تبديل الوضع">
-      <svg viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path></svg>
+    <button class="icon-btn" id="settingsQuickBtn" aria-label="الإعدادات" title="الإعدادات">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.8 1.8 0 0 0 .3 2l.1.1-1.8 1.8-.1-.1a1.8 1.8 0 0 0-2-.3 1.8 1.8 0 0 0-1.1 1.7v.2h-2.6v-.2a1.8 1.8 0 0 0-1.1-1.7 1.8 1.8 0 0 0-2 .3l-.1.1-1.8-1.8.1-.1a1.8 1.8 0 0 0 .3-2 1.8 1.8 0 0 0-1.7-1.1h-.2v-2.6h.2a1.8 1.8 0 0 0 1.7-1.1 1.8 1.8 0 0 0-.3-2l-.1-.1 1.8-1.8.1.1a1.8 1.8 0 0 0 2 .3 1.8 1.8 0 0 0 1.1-1.7v-.2h2.6v.2a1.8 1.8 0 0 0 1.1 1.7 1.8 1.8 0 0 0 2-.3l.1-.1 1.8 1.8-.1.1a1.8 1.8 0 0 0-.3 2 1.8 1.8 0 0 0 1.7 1.1h.2v2.6h-.2a1.8 1.8 0 0 0-1.7 1.1z"></path></svg>
     </button>
   </div>
 </header>
@@ -458,9 +446,9 @@
     <span class="ic"><svg viewBox="0 0 24 24"><path d="M6 3.5h8l4 4v13H6z"></path><path d="M14 3.5v4h4M9 12h6M9 15.5h6M9 19h4"></path></svg></span>
     التقارير
   </button>
-  <button class="tab-btn" data-tab="more" aria-label="المزيد">
+  <button class="tab-btn" data-tab="more" aria-label="الإعدادات">
     <span class="ic"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></span>
-    المزيد
+    الإعدادات
   </button>
 </nav>
 
@@ -590,6 +578,27 @@
   <h3>الإعدادات</h3>
   <p class="sub">بيانات الموظف والراتب ودورة الصرف والمظهر والإشعارات</p>
 
+  <p class="card-title">التحكم في التطبيق</p>
+  <div class="settings-control-grid">
+    <button class="settings-control" id="settingsLangBtn">
+      <span class="settings-control-icon"><svg viewBox="0 0 24 24"><path d="M4 5h8M8 3v2m-3 0c1.1 4 3.4 6.6 7 8"></path><path d="M13 5h7M16 5c-.8 3.6-2.7 6.5-5.2 8.8M15 12l5 7"></path></svg></span>
+      <span><b>اللغة</b><small id="settingsLangLabel">AR</small></span>
+    </button>
+    <button class="settings-control" id="settingsThemeBtn">
+      <span class="settings-control-icon"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path></svg></span>
+      <span><b>المظهر</b><small>تغيير الوضع</small></span>
+    </button>
+    <button class="settings-control" id="settingsUndoBtn">
+      <span class="settings-control-icon"><svg viewBox="0 0 24 24"><path d="M9 14l-4-4 4-4M5 10h9a5 5 0 0 1 0 10h-3"></path></svg></span>
+      <span><b>تراجع</b><small>آخر إجراء</small></span>
+    </button>
+    <button class="settings-control" id="settingsRedoBtn">
+      <span class="settings-control-icon"><svg viewBox="0 0 24 24"><path d="M15 14l4-4-4-4M19 10h-9a5 5 0 0 0 0 10h3"></path></svg></span>
+      <span><b>إعادة</b><small>آخر إجراء</small></span>
+    </button>
+  </div>
+
+  <div class="sheet-divider"></div>
   <p class="card-title">بيانات الموظف</p>
   <div class="field"><label>الاسم</label><input type="text" id="inpName" placeholder="اكتب الاسم"></div>
   <div class="field-row">
@@ -780,6 +789,14 @@
     <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
     <span data-i18n="leave.new_request">طلب إجازة جديدة</span>
   </button>
+  <div class="leave-overview-card" id="leaveOverviewSummary">
+    <div class="leave-overview-icon"><svg viewBox="0 0 24 24"><path d="M7 3h10v4H7z"></path><path d="M5 7h14v14H5z"></path><path d="M9 11h6M9 15h4"></path></svg></div>
+    <div><small>إجمالي المتبقي</small><strong id="leaveTotalRemaining">0 يوم</strong></div>
+  </div>
+  <div class="field leave-select-field">
+    <label for="leaveTypeOverviewSelect">اختر نوع الإجازة</label>
+    <select id="leaveTypeOverviewSelect"></select>
+  </div>
   <div id="leaveBalanceList"></div>
   <div class="sheet-divider"></div>
   <p class="card-title">سجل الإجازات المسجلة</p>
