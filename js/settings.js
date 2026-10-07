@@ -934,11 +934,9 @@
 
   function renderLeaveBalance() {
     const list = $('#leaveBalanceList');
-    if (!list) return;
+    const select = $('#leaveTypeOverviewSelect');
+    if (!list || !select) return;
 
-    list.innerHTML = '';
-
-    // استخدم SPLeaves لو متاح - وإلا fallback للنمط القديم
     const useLeavesModule = !!window.SPLeaves;
     const bal = useLeavesModule
       ? SPLeaves.calculateBalances(new Date().getFullYear())
@@ -953,137 +951,70 @@
           }, {});
         })();
 
-    // قائمة الأنواع: الـ 8 الجديدة لو المتاح، وإلا الـ 5 القديمة
     const types = useLeavesModule
-      ? SPLeaves.LEAVE_TYPES.map((t) => ({ key: t.id, label: SPLeaves.getTypeName(t.id), color: t.color }))
+      ? SPLeaves.LEAVE_TYPES.map((t) => ({ key:t.id, label:SPLeaves.getTypeName(t.id), color:t.color }))
       : [
-        { key: 'annual', label: 'إجازة سنوية', color: '#3b82f6' },
-        { key: 'casual', label: 'إجازة عارضة', color: '#06b6d4' },
-        { key: 'sick', label: 'إجازة مرضية', color: '#ef4444' },
-        { key: 'unpaid', label: 'إجازة بدون راتب', color: '#6b7280' },
-        { key: 'periodic', label: 'إجازة دورية', color: '#0ea5e9' }
-      ];
+          {key:'annual',label:'إجازة سنوية',color:'#315f9f'},
+          {key:'casual',label:'إجازة عارضة',color:'#2e8b68'},
+          {key:'sick',label:'إجازة مرضية',color:'#c95353'},
+          {key:'unpaid',label:'إجازة بدون راتب',color:'#748095'},
+          {key:'periodic',label:'إجازة دورية',color:'#c88928'}
+        ];
 
+    const previous = select.value;
+    select.innerHTML = '';
     types.forEach((t) => {
-      const v = bal[t.key] || { total: 0, used: 0, remaining: 0 };
+      select.appendChild(el('option', { value:t.key }, [t.label]));
+    });
+    select.value = types.some(t => t.key === previous) ? previous : (types[0] ? types[0].key : '');
+
+    const totalRemaining = types.reduce((sum,t) => sum + Math.max(0, Number((bal[t.key]||{}).remaining) || 0), 0);
+    const totalRemainingEl = $('#leaveTotalRemaining');
+    if (totalRemainingEl) totalRemainingEl.textContent = formatLeaveDays(totalRemaining) + ' يوم';
+
+    function renderSelected() {
+      const key = select.value;
+      const type = types.find(t => t.key === key) || types[0];
+      if (!type) { list.innerHTML=''; return; }
+
+      const v = bal[type.key] || {total:0,used:0,remaining:0,carryover:0,carryoverEnabled:false};
       const total = Number(v.total) || 0;
       const usedDays = Number(v.used) || 0;
-      const remaining = Number(v.remaining != null ? v.remaining : (total - usedDays));
-      const carryover = Number(v.carryover) || 0;
+      const remaining = Number(v.remaining != null ? v.remaining : total-usedDays);
+      const pct = total > 0 ? Math.min(100, Math.max(0, (usedDays/total)*100)) : 0;
+      const card = el('div',{class:'card leave-detail-card'},[]);
+      card.innerHTML =
+        '<div class="row between mb-2">' +
+          '<div style="display:flex;align-items:center;gap:9px;">' +
+            '<i style="width:11px;height:11px;border-radius:50%;display:inline-block;background:'+type.color+'"></i>' +
+            '<strong>'+type.label+'</strong>' +
+          '</div>' +
+          '<span class="chip">'+formatLeaveDays(remaining)+' متبقي</span>' +
+        '</div>' +
+        '<div class="row between fs-sm"><span class="muted">المستخدم</span><strong>'+formatLeaveDays(usedDays)+' يوم</strong></div>' +
+        '<div class="leave-progress"><span style="width:'+pct+'%"></span></div>' +
+        '<div class="row between mt-2 fs-sm"><span class="muted">إجمالي الرصيد</span><strong>'+formatLeaveDays(total)+' يوم</strong></div>' +
+        '<div class="field-row mt-3">' +
+          '<div class="field"><label>إجمالي الرصيد</label><input type="number" min="0" step="0.5" value="'+total+'" data-leave-key="'+type.key+'" data-leave-field="total"></div>' +
+          '<div class="field"><label>الرصيد المرحّل</label><input type="number" min="0" step="0.5" value="'+(Number(v.carryover)||0)+'" data-leave-key="'+type.key+'" data-leave-field="carryover"></div>' +
+        '</div>' +
+        (useLeavesModule ?
+          '<label class="setting-row" style="margin-top:6px;"><span class="meta"><span class="t1">تفعيل الترحيل</span><span class="t2">استخدام الرصيد المرحّل</span></span><span class="switch"><input type="checkbox" '+(v.carryoverEnabled?'checked':'')+' data-leave-key="'+type.key+'" data-leave-field="carryoverEnabled"><span class="slider"></span></span></label>' : '') +
+        '<p class="hint" style="margin-bottom:0;">المستخدم محسوب تلقائيًا من الإجازات المسجلة والطلبات المقبولة.</p>';
+      list.innerHTML='';
+      list.appendChild(card);
 
-      const row = el('div', { class: 'card compact mb-2' });
+      const saveBtn = el('button',{class:'btn primary block sm mt-2'},['حفظ رصيد الإجازة']);
+      saveBtn.addEventListener('click', saveLeaveBalance);
+      list.appendChild(saveBtn);
+    }
 
-      // Header — اسم النوع مع dot ملوّن
-      const headerLeft = el('div', {
-        style: 'display:flex;align-items:center;gap:8px;'
-      }, [
-        el('i', { class: 'dot', style: 'background:' + t.color + ';width:10px;height:10px;border-radius:50%;display:inline-block;' }),
-        el('strong', { class: 'fs-md' }, [t.label])
-      ]);
-
-      row.appendChild(
-        el('div', { class: 'row between mb-2' }, [
-          headerLeft,
-          el('span', { class: 'chip' }, [
-            formatLeaveDays(usedDays) + ' / ' + formatLeaveDays(total)
-          ])
-        ])
-      );
-
-      // Inputs
-      const inputs = el('div', { class: 'field-row' });
-
-      const totalField = el('div', { class: 'field' });
-      totalField.appendChild(el('label', {}, [L('leave.balance') + ' ' + L('common.all')]));
-      const totalInput = el('input', {
-        type: 'number', min: '0', step: '0.5', value: total,
-        'data-leave-key': t.key, 'data-leave-field': 'total'
-      });
-      totalField.appendChild(totalInput);
-      inputs.appendChild(totalField);
-
-      // Carryover field (لو متاح)
-      if (useLeavesModule) {
-        const carryField = el('div', { class: 'field' });
-        carryField.appendChild(el('label', {}, [
-          el('label', { style: 'display:flex;align-items:center;gap:6px;' }, [
-            el('input', {
-              type: 'checkbox',
-              checked: !!v.carryoverEnabled,
-              'data-leave-key': t.key,
-              'data-leave-field': 'carryoverEnabled'
-            }),
-            'ترحيل'
-          ])
-        ]));
-        const carryInput = el('input', {
-          type: 'number', min: '0', step: '0.5', value: carryover,
-          'data-leave-key': t.key, 'data-leave-field': 'carryover',
-          placeholder: '0'
-        });
-        carryField.appendChild(carryInput);
-        inputs.appendChild(carryField);
-      }
-
-      const usedField = el('div', { class: 'field' });
-      usedField.appendChild(el('label', {}, [L('leave.used')]));
-      const usedInput = el('input', {
-        type: 'number', value: usedDays, readonly: true, disabled: true,
-        style: 'opacity:.75;cursor:not-allowed;',
-        'data-leave-key': t.key, 'data-leave-field': 'used'
-      });
-      usedField.appendChild(usedInput);
-      inputs.appendChild(usedField);
-
-      row.appendChild(inputs);
-
-      // Remaining
-      row.appendChild(
-        el('div', { class: 'row between mt-2' }, [
-          el('span', { class: 'fs-sm muted' }, [L('leave.remaining')]),
-          el('strong', {
-            class: remaining >= 0 ? 'success' : 'danger'
-          }, [
-            formatLeaveDays(remaining) + ' ' + (L('app.name') === 'ShiftPro' && window.SPi18n && SPi18n.getLocale() === 'ar' ? 'يوم' : 'days')
-          ])
-        ])
-      );
-
-      // Hours info
-      row.appendChild(
-        el('div', { class: 'fs-xs muted mt-1' }, [
-          (window.SPi18n && SPi18n.getLocale() === 'ar')
-            ? 'المستخدم محسوب من طلبات الإجازات المقبولة + سجلات الحضور (8 ساعات = يوم)'
-            : 'Used calculated from approved leave requests + attendance (8 hours = 1 day)'
-        ])
-      );
-
-      list.appendChild(row);
-    });
-
-    // Save totals only
-    const saveBtn =
-      el('button', {
-        class:
-          'btn primary block sm mt-2'
-      }, [
-        'حفظ الأرصدة'
-      ]);
-
-    saveBtn.addEventListener(
-      'click',
-      saveLeaveBalance
-    );
-
-    list.appendChild(saveBtn);
+    if (!select.dataset.bound) {
+      select.addEventListener('change', renderSelected);
+      select.dataset.bound = '1';
+    }
+    renderSelected();
   }
-
-  // ---------------------------------------------------------
-  // Save leave balances
-  //
-  // يحفظ totals + carryover + carryoverEnabled لكل نوع.
-  // Used values بيتحسب من attendance + approved requests.
-  // ---------------------------------------------------------
 
   function saveLeaveBalance() {
     const oldBalance = storage.getLeaveBalance() || {};
