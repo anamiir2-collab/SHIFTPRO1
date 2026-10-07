@@ -65,8 +65,8 @@
     $('#printWorker').textContent =
       `الموظف: ${storage.getSettings().name}`;
 
-    // Interactive charts (Chart.js)
-    if (window.SPCharts) {
+    // Interactive charts (Chart.js) — only refresh when its accordion is open
+    if (window.SPCharts && document.querySelector('.report-disclosure.open[data-report-panel="months"], .report-disclosure.open[data-report-panel="overtime"]')) {
       try { renderInteractiveCharts(); } catch (e) { console.error('[Reports] charts error', e); }
     }
   }
@@ -197,6 +197,131 @@
     $('#reportTotalValue').textContent = fmtCurrency(totalValue);
   }
 
+  function getReportRows(result) {
+    return (result.dailyDetails || []).map((d) => {
+      const dayName = weekdayShortAr[d.date.getDay()];
+      const dateDisplay = `${String(d.date.getDate()).padStart(2, '0')}/${String(d.date.getMonth() + 1).padStart(2, '0')}/${d.date.getFullYear()}`;
+      const scheduledCode = storage.getScheduledCode(fmtDate(d.date));
+      const shift = scheduledCode ? storage.getShiftByCode(scheduledCode) : null;
+      const scheduledLabel = shift ? shift.name : 'غير محدد';
+      const statusLabel = d.entry ? SPAttendance.statusLabels[d.entry.status] || 'غير مسجل' : 'غير مسجل';
+      return {
+        day: dayName,
+        date: dateDisplay,
+        scheduled: scheduledLabel,
+        status: statusLabel,
+        from: d.entry && d.entry.from ? d.entry.from : '',
+        to: d.entry && d.entry.to ? d.entry.to : '',
+        hours: Number(d.actual || 0),
+        overtime: Number(d.ot || 0),
+        late: Number(d.late || 0),
+        early: Number(d.early || 0),
+        value: Number(d.value || 0),
+        note: d.entry && d.entry.note ? d.entry.note : ''
+      };
+    });
+  }
+
+  function reportSummary(result, start, end) {
+    return {
+      employee: (storage.getSettings() || {}).name || 'موظف',
+      from: fmtDate(start),
+      to: fmtDate(end),
+      workDays: (result.counts.A || 0) + (result.counts.X || 0),
+      present: result.counts.A || 0,
+      double: result.counts.X || 0,
+      leave: result.counts.L || 0,
+      absent: result.counts.B || 0,
+      baseHours: Number(result.baseHours || 0),
+      overtimeHours: Number(result.overtimeHours || 0),
+      totalHours: Number(result.totalHours || 0),
+      baseSalary: Number(result.baseSalary || 0),
+      overtimeValue: Number(result.overtimeValue || 0),
+      bonus: Number(result.bonus || 0),
+      allowance: Number(result.allowance || 0),
+      deduction: Number(result.deduction || 0),
+      advance: Number(result.advance || 0),
+      netSalary: Number(result.netSalary || 0)
+    };
+  }
+
+  function exportReportJSON() {
+    const { start, end } = getReportRange();
+    const result = SPSalary.computeSalary(start, end);
+    const data = { app: 'ShiftPro', type: 'report', summary: reportSummary(result, start, end), table: getReportRows(result) };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+    downloadBlob(`ShiftPro-Report-${fmtDate(start)}-to-${fmtDate(end)}.json`, blob);
+    toast('تم تحميل التقرير بصيغة JSON', 'success');
+  }
+
+  async function exportReportXLSX() {
+    const { start, end } = getReportRange();
+    const result = SPSalary.computeSalary(start, end);
+    let XLSX = global.XLSX;
+    if (!XLSX) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = './vendor/xlsx.full.min.js';
+        s.onload = () => global.XLSX ? resolve() : reject(new Error('XLSX not loaded'));
+        s.onerror = () => {
+          const s2 = document.createElement('script');
+          s2.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+          s2.onload = () => global.XLSX ? resolve() : reject(new Error('XLSX not loaded'));
+          s2.onerror = () => reject(new Error('Failed to load XLSX'));
+          document.head.appendChild(s2);
+        };
+        document.head.appendChild(s);
+      });
+      XLSX = global.XLSX;
+    }
+    const rows = getReportRows(result);
+    const summary = reportSummary(result, start, end);
+    const table = [['اليوم','التاريخ','المجدول','الحالة','الحضور','الانصراف','الساعات','الإضافي','التأخير','الانصراف المبكر','قيمة اليوم','ملاحظة']];
+    rows.forEach(r => table.push([r.day,r.date,r.scheduled,r.status,r.from,r.to,r.hours,r.overtime,r.late,r.early,r.value,r.note]));
+    const summaryRows = [
+      ['ملخص التقرير'],['الموظف',summary.employee],['من',summary.from],['إلى',summary.to],
+      ['أيام العمل',summary.workDays],['حضور',summary.present],['مطبق',summary.double],['إجازة',summary.leave],['غياب',summary.absent],
+      ['الساعات الأساسية',summary.baseHours],['الساعات الإضافية',summary.overtimeHours],['إجمالي الساعات',summary.totalHours],
+      ['الراتب الأساسي',summary.baseSalary],['قيمة الإضافي',summary.overtimeValue],['المكافآت',summary.bonus],['البدلات',summary.allowance],
+      ['الخصومات',summary.deduction],['السلف',summary.advance],['صافي المستحق',summary.netSalary]
+    ];
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(table);
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryRows);
+    ws['!cols'] = [{wch:12},{wch:14},{wch:22},{wch:14},{wch:12},{wch:12},{wch:10},{wch:10},{wch:10},{wch:16},{wch:14},{wch:28}];
+    wsSummary['!cols'] = [{wch:24},{wch:24}];
+    XLSX.utils.book_append_sheet(wb, ws, 'الجدول');
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'الملخص');
+    const filename = `ShiftPro-Report-${fmtDate(start)}-to-${fmtDate(end)}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    toast('تم تحميل Excel بالجدول والملخص', 'success');
+  }
+
+  async function exportSelectedReport() {
+    const format = $('#reportExportFormat') ? $('#reportExportFormat').value : 'xlsx';
+    const { start, end } = getReportRange();
+    try {
+      if (format === 'xlsx') return await exportReportXLSX();
+      if (format === 'csv') return exportCSV();
+      if (format === 'json') return exportReportJSON();
+      if (format === 'pdf') {
+        if (!global.SPPDF || !SPPDF.exportReportRange) throw new Error('موديول PDF غير متاح');
+        toast('جاري تجهيز PDF...', 'info');
+        const r = await SPPDF.exportReportRange(start, end);
+        if (r && r.ok) toast('تم تحميل PDF بالجدول والملخص', 'success');
+        return r;
+      }
+      if (format === 'ics') {
+        if (!global.SPiCal) throw new Error('موديول iCal غير متاح');
+        return SPiCal.exportICS();
+      }
+      if (format === 'print') return printReport();
+    } catch (e) {
+      console.error('[Reports] export error', e);
+      toast('تعذر تحميل التقرير: ' + e.message, 'error');
+    }
+  }
+
   // ---------- Export functions ----------
   function exportCSV() {
     const { start, end } = getReportRange();
@@ -307,6 +432,30 @@
       }));
     }
 
+    // Report accordions
+    document.querySelectorAll('[data-report-panel]').forEach((trigger) => {
+      trigger.addEventListener('click', () => {
+        const panel = trigger.dataset.reportPanel;
+        const section = trigger.closest('.report-disclosure');
+        const content = $('#reportPanel-' + panel);
+        const willOpen = !!content && content.hidden;
+        document.querySelectorAll('.report-disclosure').forEach((s) => s.classList.remove('open'));
+        document.querySelectorAll('.report-disclosure-content').forEach((el) => { el.hidden = true; });
+        document.querySelectorAll('[data-report-panel]').forEach((t) => t.setAttribute('aria-expanded', 'false'));
+        if (willOpen && content) {
+          content.hidden = false;
+          section.classList.add('open');
+          trigger.setAttribute('aria-expanded', 'true');
+          if (panel === 'months' || panel === 'overtime') {
+            setTimeout(() => { renderInteractiveCharts().catch(() => {}); }, 40);
+          }
+        }
+      });
+    });
+
+    const reportExportBtn = $('#reportExportBtn');
+    if (reportExportBtn) reportExportBtn.addEventListener('click', onClickOnce(exportSelectedReport));
+
     // Range tabs
     document.querySelectorAll('[data-report-range]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -334,6 +483,6 @@
   }
 
   global.SPReports = {
-    init, render, exportCSV, exportJSON
+    init, render, exportCSV, exportJSON, exportReportXLSX, exportReportJSON, exportSelectedReport
   };
 })(window);
