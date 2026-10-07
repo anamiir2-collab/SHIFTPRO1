@@ -664,6 +664,36 @@ function setupInstallPrompt() {
       }
     }
 
+    // ====== Settings controls ======
+    const settingsLangBtn = $('#settingsLangBtn');
+    const settingsLangLabel = $('#settingsLangLabel');
+    const syncSettingsLang = () => {
+      if (settingsLangLabel) settingsLangLabel.textContent = (window.SPi18n ? SPi18n.getLocale() : 'ar').toUpperCase();
+    };
+    syncSettingsLang();
+    if (settingsLangBtn) {
+      settingsLangBtn.addEventListener('click', onClickOnce(() => {
+        if (window.SPi18n) SPi18n.toggleLocale();
+        syncSettingsLang();
+        toast(t('msg.updated'), 'info');
+      }));
+    }
+    if (window.SPi18n) {
+      SPi18n.subscribe(() => syncSettingsLang());
+    }
+
+    const settingsUndoBtn = $('#settingsUndoBtn');
+    const settingsRedoBtn = $('#settingsRedoBtn');
+    const updateSettingsUndoUI = () => {
+      if (!window.SPUndoRedo) return;
+      if (settingsUndoBtn) settingsUndoBtn.disabled = !SPUndoRedo.canUndo();
+      if (settingsRedoBtn) settingsRedoBtn.disabled = !SPUndoRedo.canRedo();
+    };
+    if (settingsUndoBtn) settingsUndoBtn.addEventListener('click', onClickOnce(() => SPUndoRedo.undo()));
+    if (settingsRedoBtn) settingsRedoBtn.addEventListener('click', onClickOnce(() => SPUndoRedo.redo()));
+    if (window.SPUndoRedo) SPUndoRedo.subscribe(updateSettingsUndoUI);
+    updateSettingsUndoUI();
+
     // ====== Privacy Mode ======
     const privacyBtn = $('#privacyBtn');
     if (privacyBtn && window.SPUX) {
