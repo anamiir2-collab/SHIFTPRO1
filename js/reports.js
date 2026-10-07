@@ -385,9 +385,13 @@
   function init() {
     $('#prevReportBtn').addEventListener('click', onClickOnce(() => SPCalendar.shiftPeriod(-1)));
     $('#nextReportBtn').addEventListener('click', onClickOnce(() => SPCalendar.shiftPeriod(1)));
-    $('#exportCsvBtn').addEventListener('click', onClickOnce(exportCSV));
-    $('#exportJsonBtn').addEventListener('click', onClickOnce(exportJSON));
-    $('#printBtn').addEventListener('click', onClickOnce(printReport));
+    // Legacy export buttons are optional after the new unified export menu.
+    const legacyCsvBtn = $('#exportCsvBtn');
+    if (legacyCsvBtn) legacyCsvBtn.addEventListener('click', onClickOnce(exportCSV));
+    const legacyJsonBtn = $('#exportJsonBtn');
+    if (legacyJsonBtn) legacyJsonBtn.addEventListener('click', onClickOnce(exportJSON));
+    const legacyPrintBtn = $('#printBtn');
+    if (legacyPrintBtn) legacyPrintBtn.addEventListener('click', onClickOnce(printReport));
     // XLSX عبر SheetJS
     const exportXlsxBtn = $('#exportXlsxBtn');
     if (exportXlsxBtn) {
