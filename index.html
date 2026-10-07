@@ -15,6 +15,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/ios-style.css">
   <!-- i18n: العربية + الإنجليزية (يتحمّل قبل أي موديول آخر) -->
   <script src="locales/ar.js"></script>
   <script src="locales/en.js"></script>
@@ -40,7 +41,7 @@
     </div>
     <h1 class="sp-brand" aria-label="SHIFT PRO"><span>SHIFT</span><span>PRO</span></h1>
     <p class="sp-tagline" data-i18n="app.tagline">وقتك محسوب.. وشغلك منظم</p>
-    <p class="sp-credit" data-i18n="app.credit">v2.0 — Designed &amp; Developed by Amir Anwar</p>
+    <p class="sp-credit">v2.0 • إدارة الورديات والحضور والرواتب</p>
     <div class="sp-progress" aria-hidden="true"><span></span></div>
   </div>
 </div>
@@ -299,38 +300,11 @@
     </div>
   </div>
 
-  <div class="card">
-    <p class="card-title">توزيع الحضور</p>
-    <div class="donut-wrap">
-      <svg viewBox="0 0 120 120" id="attendanceDonut">
-        <circle cx="60" cy="60" r="48" fill="none" stroke="var(--panel-3)" stroke-width="14"></circle>
-        <g id="donutSegments"></g>
-        <text x="60" y="58" text-anchor="middle" class="donut-center-val" id="donutCenterVal" font-size="18" font-weight="900" fill="var(--text)">0</text>
-        <text x="60" y="76" text-anchor="middle" font-size="9" fill="var(--muted)">إجمالي</text>
-      </svg>
-      <div class="donut-legend" id="donutLegend"></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <p class="card-title">ساعات العمل اليومية</p>
-    <div class="bar-chart" id="hoursBarChart"></div>
-  </div>
-
-  <!-- ============ Interactive Charts (Chart.js) ============ -->
-  <div class="card">
-    <p class="card-title">مقارنة الأشهر (آخر 6 أشهر)</p>
-    <div id="changeCardRow" class="row gap-2 mb-3" style="flex-wrap:wrap;"></div>
-    <div style="height:280px;position:relative;">
-      <canvas id="monthComparisonChart"></canvas>
-    </div>
-  </div>
-
-  <div class="card">
-    <p class="card-title">اتجاه الإضافي</p>
-    <div style="height:220px;position:relative;">
-      <canvas id="overtimeTrendChart"></canvas>
-    </div>
+  <div class="report-disclosures" id="reportDisclosures">
+    <section class="report-disclosure"><button class="report-disclosure-trigger" type="button" aria-expanded="false" data-report-panel="attendance"><span class="report-disclosure-leading"><span class="ios-icon-box"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9"></path><path d="M12 3v9h9"></path></svg></span><span><strong>توزيع الحضور</strong><small>حضور ومطبق وإجازة وغياب</small></span></span><svg class="report-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"></path></svg></button><div class="report-disclosure-content" id="reportPanel-attendance" hidden><div class="donut-wrap"><svg viewBox="0 0 120 120" id="attendanceDonut"><circle cx="60" cy="60" r="48" fill="none" stroke="var(--panel-3)" stroke-width="14"></circle><g id="donutSegments"></g><text x="60" y="58" text-anchor="middle" class="donut-center-val" id="donutCenterVal" font-size="18" font-weight="900" fill="var(--text)">0</text><text x="60" y="76" text-anchor="middle" font-size="9" fill="var(--muted)">إجمالي</text></svg><div class="donut-legend" id="donutLegend"></div></div></div></section>
+    <section class="report-disclosure"><button class="report-disclosure-trigger" type="button" aria-expanded="false" data-report-panel="hours"><span class="report-disclosure-leading"><span class="ios-icon-box"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><path d="M12 7v5l3 2"></path></svg></span><span><strong>ساعات العمل اليومية</strong><small>تفصيل الساعات المسجلة يوميًا</small></span></span><svg class="report-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"></path></svg></button><div class="report-disclosure-content" id="reportPanel-hours" hidden><div class="bar-chart" id="hoursBarChart"></div></div></section>
+    <section class="report-disclosure"><button class="report-disclosure-trigger" type="button" aria-expanded="false" data-report-panel="months"><span class="report-disclosure-leading"><span class="ios-icon-box"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"></path><path d="m7 15 4-5 3 3 5-7"></path></svg></span><span><strong>مقارنة الأشهر</strong><small>آخر 6 أشهر</small></span></span><svg class="report-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"></path></svg></button><div class="report-disclosure-content" id="reportPanel-months" hidden><div id="changeCardRow" class="row gap-2 mb-3" style="flex-wrap:wrap;"></div><div style="height:280px;position:relative;"><canvas id="monthComparisonChart"></canvas></div></div></section>
+    <section class="report-disclosure"><button class="report-disclosure-trigger" type="button" aria-expanded="false" data-report-panel="overtime"><span class="report-disclosure-leading"><span class="ios-icon-box"><svg viewBox="0 0 24 24"><path d="M3 12h18"></path><path d="m7 12 3-5 4 9 3-5"></path></svg></span><span><strong>اتجاه الإضافي</strong><small>حركة الساعات الإضافية</small></span></span><svg class="report-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"></path></svg></button><div class="report-disclosure-content" id="reportPanel-overtime" hidden><div style="height:220px;position:relative;"><canvas id="overtimeTrendChart"></canvas></div></div></section>
   </div>
 
   <div class="report-print-header">
@@ -339,32 +313,7 @@
     <p id="printWorker"></p>
   </div>
 
-  <div class="row gap-2 mb-3 nav-print-hide" style="flex-wrap:wrap;">
-    <button class="btn primary sm grow" id="exportCsvBtn">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 13h8M8 17h5"></path></svg>
-      CSV
-    </button>
-    <button class="btn ghost sm grow" id="exportXlsxBtn">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 13h8M8 17h5"></path></svg>
-      Excel (XLSX)
-    </button>
-    <button class="btn ghost sm grow" id="exportJsonBtn">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>
-      JSON
-    </button>
-    <button class="btn ghost sm grow" id="exportPdfBtn">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M9 13l2 2 4-4"></path></svg>
-      تصدير PDF
-    </button>
-    <button class="btn ghost sm grow" id="exportIcsBtn" title="iCal / Google Calendar">
-      <svg viewBox="0 0 24 24"><path d="M3 4h18v18H3zM3 9h18M8 2v4M16 2v4"></path><path d="M8 14l3 3 5-5"></path></svg>
-      iCal (.ics)
-    </button>
-    <button class="btn ghost sm grow" id="printBtn">
-      <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"></path></svg>
-      طباعة / PDF
-    </button>
-  </div>
+  <div class="report-export-card nav-print-hide"><div class="report-export-copy"><span class="ios-icon-box"><svg viewBox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 21h16"></path></svg></span><div><strong>تحميل التقرير</strong><small>الجدول والملخص بنفس بيانات الفترة المحددة</small></div></div><div class="report-export-row"><select id="reportExportFormat" aria-label="صيغة التقرير"><option value="xlsx">Excel (XLSX)</option><option value="pdf">PDF</option><option value="csv">CSV</option><option value="json">JSON</option><option value="ics">iCal (.ics)</option><option value="print">طباعة</option></select><button class="btn primary sm" id="reportExportBtn"><svg viewBox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 21h16"></path></svg>تحميل</button></div></div>
 
   <div class="table-wrap">
     <table class="tbl" id="reportTable">
@@ -385,6 +334,8 @@
   <div class="card">
     <p class="card-title">الإعدادات</p>
     <div class="section-list" id="moreList">
+      <button class="item" data-sheet="control"><span class="ico-box"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M8 17h12M4 17h2"></path><circle cx="17" cy="7" r="2"></circle><circle cx="7" cy="17" r="2"></circle></svg></span><span class="label">التحكم في التطبيق</span><span class="chev"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></span></button>
+      <button class="item" data-sheet="notifications"><span class="ico-box"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg></span><span class="label">التذكيرات والإشعارات</span><span class="chev"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></span></button>
       <button class="item" data-sheet="settings">
         <span class="ico-box"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.7a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.7a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"></path></svg></span>
         <span class="label">الإعدادات العامة</span>
@@ -578,27 +529,6 @@
   <h3>الإعدادات</h3>
   <p class="sub">بيانات الموظف والراتب ودورة الصرف والمظهر والإشعارات</p>
 
-  <p class="card-title">التحكم في التطبيق</p>
-  <div class="settings-control-grid">
-    <button class="settings-control" id="settingsLangBtn">
-      <span class="settings-control-icon"><svg viewBox="0 0 24 24"><path d="M4 5h8M8 3v2m-3 0c1.1 4 3.4 6.6 7 8"></path><path d="M13 5h7M16 5c-.8 3.6-2.7 6.5-5.2 8.8M15 12l5 7"></path></svg></span>
-      <span><b>اللغة</b><small id="settingsLangLabel">AR</small></span>
-    </button>
-    <button class="settings-control" id="settingsThemeBtn">
-      <span class="settings-control-icon"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path></svg></span>
-      <span><b>المظهر</b><small>تغيير الوضع</small></span>
-    </button>
-    <button class="settings-control" id="settingsUndoBtn">
-      <span class="settings-control-icon"><svg viewBox="0 0 24 24"><path d="M9 14l-4-4 4-4M5 10h9a5 5 0 0 1 0 10h-3"></path></svg></span>
-      <span><b>تراجع</b><small>آخر إجراء</small></span>
-    </button>
-    <button class="settings-control" id="settingsRedoBtn">
-      <span class="settings-control-icon"><svg viewBox="0 0 24 24"><path d="M15 14l4-4-4-4M19 10h-9a5 5 0 0 0 0 10h3"></path></svg></span>
-      <span><b>إعادة</b><small>آخر إجراء</small></span>
-    </button>
-  </div>
-
-  <div class="sheet-divider"></div>
   <p class="card-title">بيانات الموظف</p>
   <div class="field"><label>الاسم</label><input type="text" id="inpName" placeholder="اكتب الاسم"></div>
   <div class="field-row">
@@ -670,22 +600,6 @@
   </div>
 
   <div class="sheet-divider"></div>
-  <p class="card-title">الإشعارات (محلية)</p>
-  <div class="setting-row">
-    <div class="meta"><div class="t1">تذكير بتسجيل الحضور</div></div>
-    <label class="switch"><input type="checkbox" id="inpNotifyCheckIn"><span class="slider"></span></label>
-  </div>
-  <div class="field"><label>وقت تذكير الحضور</label><input type="time" id="inpNotifyCheckInTime" value="07:00"></div>
-  <div class="setting-row">
-    <div class="meta"><div class="t1">تذكير بتسجيل الانصراف</div></div>
-    <label class="switch"><input type="checkbox" id="inpNotifyCheckOut"><span class="slider"></span></label>
-  </div>
-  <div class="field"><label>وقت تذكير الانصراف</label><input type="time" id="inpNotifyCheckOutTime" value="19:00"></div>
-  <div class="setting-row">
-    <div class="meta"><div class="t1">تذكير بنهاية الوردية</div></div>
-    <label class="switch"><input type="checkbox" id="inpNotifyShiftEnd"><span class="slider"></span></label>
-  </div>
-
   <div class="sheet-divider"></div>
   <button class="btn primary block lg" id="saveSettingsBtn">حفظ الإعدادات</button>
   <button class="btn ghost block sm mt-2" id="closeSettingsBtn">إغلاق</button>
@@ -913,6 +827,7 @@
     <div class="row between mb-2"><span class="muted">قابل للتثبيت</span><strong class="success">PWA</strong></div>
     <div class="row between"><span class="muted">تخزين البيانات</span><strong>محلي (الجهاز)</strong></div>
   </div>
+  <div class="about-explain-card"><strong>شرح مبسط للتطبيق</strong><p>ShiftPro يساعدك تتابع وردياتك وحضورك وانصرافك وساعاتك الإضافية وإجازاتك، ويحسب الراتب والمستحقات تلقائيًا. ومن التقارير تقدر تراجع الفترة وتحمل الجدول والملخص بالصيغة اللي تناسبك.</p></div>
   <p class="hint">جميع بياناتك محفوظة محليًا على جهازك ولا تُرسل إلى أي خادم. التطبيق يعمل بشكل كامل بدون اتصال بالإنترنت بعد التحميل الأول.</p>
   <div class="credit">
     <div class="avatar">أ</div>
@@ -924,6 +839,24 @@
   </div>
   <button class="btn ghost block sm mt-3" id="closeAboutBtn">إغلاق</button>
 </div>
+
+<!-- ============ SHEET: APP CONTROL ============ -->
+<div class="sheet-overlay" id="controlOverlay"></div><div class="sheet ios-sheet" id="controlSheet" role="dialog"><div class="ios-sheet-grabber"></div><div class="sheet-header-ios"><h3>التحكم في التطبيق</h3><p class="sub">اللغة والمظهر والتراجع وإعادة الإجراء</p></div><div class="ios-settings-list">
+<button class="ios-setting-row" id="settingsLangBtn"><span class="ios-row-icon"><svg viewBox="0 0 24 24"><path d="M4 5h8M8 3v2m-3 0c1.1 4 3.4 6.6 7 8"></path><path d="M13 5h7M16 5c-.8 3.6-2.7 6.5-5.2 8.8M15 12l5 7"></path></svg></span><span class="ios-row-text"><strong>اللغة</strong><small id="settingsLangLabel">AR</small></span><span class="ios-row-value">تغيير</span></button>
+<button class="ios-setting-row" id="settingsThemeBtn"><span class="ios-row-icon"><svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path></svg></span><span class="ios-row-text"><strong>المظهر</strong><small>نهاري / داكن / تلقائي</small></span><span class="ios-row-value">تغيير</span></button>
+<button class="ios-setting-row" id="settingsUndoBtn"><span class="ios-row-icon"><svg viewBox="0 0 24 24"><path d="M9 14l-4-4 4-4M5 10h9a5 5 0 0 1 0 10h-3"></path></svg></span><span class="ios-row-text"><strong>تراجع</strong><small>آخر إجراء</small></span><span class="ios-row-value">تنفيذ</span></button>
+<button class="ios-setting-row" id="settingsRedoBtn"><span class="ios-row-icon"><svg viewBox="0 0 24 24"><path d="M15 14l4-4-4-4M19 10h-9a5 5 0 0 1 0 10h3"></path></svg></span><span class="ios-row-text"><strong>إعادة</strong><small>إعادة آخر إجراء</small></span><span class="ios-row-value">تنفيذ</span></button></div><button class="btn ghost block sm mt-3" id="closeControlBtn">إغلاق</button></div>
+<!-- ============ SHEET: NOTIFICATIONS ============ -->
+<div class="sheet-overlay" id="notificationsOverlay"></div><div class="sheet ios-sheet" id="notificationsSheet" role="dialog"><div class="ios-sheet-grabber"></div><div class="sheet-header-ios"><h3>التذكيرات والإشعارات</h3><p class="sub">تحكم كامل في التنبيهات المحلية على جهازك</p></div>
+<div class="notification-permission-card"><div><strong id="notificationPermissionState">حالة الإشعارات: غير مفعلة</strong><small>الإشعارات محلية وتعمل من خلال المتصفح وبدون خادم.</small></div><button class="btn primary sm" id="requestNotificationBtn">تفعيل</button></div>
+<div class="ios-settings-list">
+<div class="ios-setting-row static-row"><span class="ios-row-icon"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg></span><span class="ios-row-text"><strong>تفعيل الإشعارات</strong><small>السماح للتطبيق بإظهار التنبيهات</small></span><label class="switch"><input type="checkbox" id="notifEnabled"><span class="slider"></span></label></div>
+<div class="ios-setting-row static-row"><span class="ios-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><path d="M12 7v5l3 2"></path></svg></span><span class="ios-row-text"><strong>تذكير قبل الوردية</strong><small>قبل الوردية بـ 15 أو 30 أو 60 دقيقة</small></span><label class="switch"><input type="checkbox" id="notifShiftReminder"><span class="slider"></span></label></div>
+<div class="field ios-field"><label>مدة التذكير قبل الوردية</label><select id="notifShiftMinutes"><option value="15">15 دقيقة</option><option value="30">30 دقيقة</option><option value="60">60 دقيقة</option></select></div>
+<div class="ios-setting-row static-row"><span class="ios-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span><span class="ios-row-text"><strong>ملخص اليوم</strong><small>ساعاتك والإضافي والقيمة المتوقعة</small></span><label class="switch"><input type="checkbox" id="notifDailySummary"><span class="slider"></span></label></div>
+<div class="field ios-field"><label>وقت ملخص اليوم</label><input type="time" id="notifDailySummaryTime" value="20:00"></div>
+<div class="field ios-field"><label>التنبيه عند نسيان الانصراف بعد</label><select id="notifForgetCheckoutHours"><option value="8">8 ساعات</option><option value="10">10 ساعات</option><option value="12">12 ساعة</option><option value="16">16 ساعة</option></select></div></div>
+<button class="btn primary block lg mt-3" id="saveNotificationsBtn">حفظ التذكيرات</button><button class="btn ghost block sm mt-2" id="closeNotificationsBtn">إغلاق</button></div>
 
 <!-- ============ SHEET: ADJUSTMENT (bonus/deduction) ============ -->
 <div class="sheet-overlay" id="adjOverlay"></div>
