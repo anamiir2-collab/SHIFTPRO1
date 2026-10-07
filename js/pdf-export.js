@@ -81,14 +81,14 @@
 
   // ---------- توليد تقرير شهري PDF ----------
   // year, month (0-11)
-  async function exportMonthlyReport(year, month) {
+  async function exportMonthlyReport(year, month, rangeStart, rangeEnd) {
     if (!global.SPStorage || !global.SPSalary) {
       throw new Error('Required modules not loaded');
     }
     const { $, el, fmtDate, parseDate } = SPUtils;
     const settings = SPStorage.getSettings();
-    const startDate = new Date(year, month, 1);
-    const endDate = new Date(year, month + 1, 0);
+    const startDate = rangeStart instanceof Date ? new Date(rangeStart) : new Date(year, month, 1);
+    const endDate = rangeEnd instanceof Date ? new Date(rangeEnd) : new Date(year, month + 1, 0);
     const start = fmtDate(startDate);
     const end = fmtDate(endDate);
     const result = SPSalary.computeSalary(startDate, endDate);
@@ -217,6 +217,39 @@
       reportNode.appendChild(lvSection);
     }
 
+    // ---------- جدول التقرير الكامل ----------
+    const tableSection = el('div', { style: 'margin-bottom:24px;' });
+    tableSection.appendChild(el('h2', { style: 'font-size:16px;margin:0 0 12px;color:#2563eb;' }, [
+      isAr ? 'جدول الحضور والورديات' : 'Attendance & Shift Table'
+    ]));
+    const dailyTable = el('table', { style: 'width:100%;border-collapse:collapse;font-size:10px;' });
+    const headerRow = el('tr');
+    [isAr ? 'اليوم' : 'Day', isAr ? 'التاريخ' : 'Date', isAr ? 'الوردية' : 'Shift', isAr ? 'الحالة' : 'Status', isAr ? 'الوقت' : 'Time', isAr ? 'الساعات' : 'Hours', isAr ? 'القيمة' : 'Value'].forEach((label) => {
+      headerRow.appendChild(el('th', { style: 'padding:6px;border-bottom:2px solid #e5e7eb;text-align:' + (isAr ? 'right' : 'left') + ';' }, [label]));
+    });
+    dailyTable.appendChild(el('thead', {}, [headerRow]));
+    const dailyBody = el('tbody');
+    (result.dailyDetails || []).forEach((d) => {
+      const dstr = fmtDate(d.date);
+      const code = SPStorage.getScheduledCode(dstr);
+      const shift = code ? SPStorage.getShiftByCode(code) : null;
+      const status = d.entry ? (global.SPAttendance && SPAttendance.statusLabels ? SPAttendance.statusLabels[d.entry.status] : d.entry.status) : 'غير مسجل';
+      const time = d.entry && d.entry.from && d.entry.to ? d.entry.from + ' — ' + d.entry.to : '-';
+      const row = el('tr');
+      [weekdayName(d.date), dstr, shift ? shift.name : 'غير محدد', status, time, fmtNum(d.actual || 0), fmtCurrency(d.value || 0)].forEach((value) => {
+        row.appendChild(el('td', { style: 'padding:5px;border-bottom:1px solid #f3f4f6;' }, [String(value)]));
+      });
+      dailyBody.appendChild(row);
+    });
+    dailyTable.appendChild(dailyBody);
+    tableSection.appendChild(dailyTable);
+    reportNode.appendChild(tableSection);
+
+    function weekdayName(d) {
+      const names = isAr ? ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'] : ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      return names[d.getDay()];
+    }
+
     // تذييل
     reportNode.appendChild(el('div', {
       style: 'margin-top:40px;border-top:1px solid #e5e7eb;padding-top:12px;font-size:11px;color:#6b7280;text-align:center;'
@@ -260,8 +293,10 @@
       }
 
       // اسم الملف
-      const monthLabel = (isAr ? 'تقرير_' : 'report_') + (month + 1) + '_' + year;
-      const filename = monthLabel + '.pdf';
+      const rangeLabel = rangeStart instanceof Date || rangeEnd instanceof Date
+        ? (isAr ? 'تقرير_' : 'report_') + fmtDate(startDate) + '_الى_' + fmtDate(endDate)
+        : (isAr ? 'تقرير_' : 'report_') + (month + 1) + '_' + year;
+      const filename = rangeLabel + '.pdf';
       pdf.save(filename);
       return { ok: true, filename };
     } catch (e) {
@@ -274,6 +309,11 @@
       // امسح العنصر المؤقت
       if (reportNode.parentNode) reportNode.parentNode.removeChild(reportNode);
     }
+  }
+
+  async function exportReportRange(start, end) {
+    if (!(start instanceof Date) || !(end instanceof Date)) throw new Error('Invalid report range');
+    return exportMonthlyReport(start.getFullYear(), start.getMonth(), start, end);
   }
 
   // ---------- تصدير إيصال حضور ليوم واحد ----------
@@ -346,6 +386,7 @@
 
   global.SPPDF = {
     exportMonthlyReport,
+    exportReportRange,
     exportDayReceipt,
     loadJsPDF,
     loadHtml2canvas
