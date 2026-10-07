@@ -160,18 +160,24 @@
   // ---------- Data change handler ----------
   let changeTimer = null;
   function onDataChange() {
-    // Debounce re-rendering to avoid flicker when multiple storage ops fire
+    // Re-render only the visible page. Rendering hidden pages here caused
+    // unnecessary work and could make the first UI feel frozen on mobile.
     if (changeTimer) clearTimeout(changeTimer);
     changeTimer = setTimeout(() => {
       const activeTab = document.querySelector('.tab-btn.active');
       const tab = activeTab ? activeTab.dataset.tab : 'dashboard';
-      // Always refresh dashboard + calendar + salary + reports
-      if (tab === 'dashboard') renderDashboard();
-      SPCalendar.renderCalendar();
-      SPCalendar.renderLegend();
-      SPSalary.render();
-      SPReports.render();
-      // Topbar name
+
+      if (tab === 'dashboard') {
+        renderDashboard();
+      } else if (tab === 'calendar') {
+        SPCalendar.renderCalendar();
+        SPCalendar.renderLegend();
+      } else if (tab === 'salary') {
+        SPSalary.render();
+      } else if (tab === 'reports') {
+        SPReports.render();
+      }
+
       $('#workerName').textContent = storage.getSettings().name || '—';
     }, 80);
   }
@@ -518,11 +524,26 @@ function setupInstallPrompt() {
     SPReports.init();
     SPSettings.init();
 
-    // Initial render
+    // First paint: render only the dashboard.
+    // Other pages are rendered when the user opens them, preventing a heavy
+    // first-load freeze on mobile/PWA.
     renderDashboard();
-    SPCalendar.renderCalendar();
-    SPSalary.render();
-    SPReports.render();
+
+    // Prepare secondary views after the first frame, without blocking the UI.
+    const warmSecondaryViews = () => {
+      try {
+        SPCalendar.renderCalendar();
+        SPCalendar.renderLegend();
+        SPSalary.render();
+      } catch (e) {
+        console.error('[Init] secondary render error', e);
+      }
+    };
+    if (window.requestIdleCallback) {
+      requestIdleCallback(warmSecondaryViews, { timeout: 1200 });
+    } else {
+      setTimeout(warmSecondaryViews, 350);
+    }
 
     // Tab navigation
     document.querySelectorAll('.tab-btn').forEach((btn) => {
@@ -544,8 +565,11 @@ function setupInstallPrompt() {
       });
     });
 
-    // Hide splash after delay (or on first interaction)
-    setTimeout(hideSplash, 2200);
+    // Hide splash after the first usable paint; 2.2s made the app feel stuck.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(hideSplash);
+    });
+    setTimeout(hideSplash, 900);
     // Also hide on first tap
     const hideOnTap = () => {
       hideSplash();
@@ -565,17 +589,27 @@ function setupInstallPrompt() {
       setupNotifications();
     }
 
-    // ====== Smart Notifications (محلية بالكامل بدون سيرفر) ======
-    if (window.SPNotifications) {
-      SPNotifications.init();
-      SPNotifications.checkMissedOnOpen();
-    }
+    // Non-critical background services start after the first screen is usable.
+    const startBackgroundServices = () => {
+      if (window.SPNotifications) {
+        try {
+          SPNotifications.init();
+          SPNotifications.checkMissedOnOpen();
+        } catch (e) {
+          console.error('[Notif] init error', e);
+        }
+      }
 
-    // ====== Auto Backup (محلي في IndexedDB أسبوعيًا) ======
-    if (window.SPBackup) {
-      SPBackup.autoBackupIfNeeded().then((done) => {
-        if (done) console.log('[Backup] Weekly auto-snapshot created');
-      }).catch(() => {});
+      if (window.SPBackup) {
+        SPBackup.autoBackupIfNeeded().then((done) => {
+          if (done) console.log('[Backup] Weekly auto-snapshot created');
+        }).catch(() => {});
+      }
+    };
+    if (window.requestIdleCallback) {
+      requestIdleCallback(startBackgroundServices, { timeout: 1800 });
+    } else {
+      setTimeout(startBackgroundServices, 900);
     }
 
     // ====== App Lock (PIN + WebAuthn) ======
@@ -605,27 +639,6 @@ function setupInstallPrompt() {
 
     // Handle URL params
     handleUrlParams();
-
-    // Auto-save settings sheet's "enable notifications" toggles
-    document.addEventListener('change', (e) => {
-      if (e.target && e.target.id === 'inpNotifyCheckIn' && e.target.checked) {
-        requestNotificationPermission().then((granted) => {
-          if (!granted) {
-            e.target.checked = false;
-          }
-        });
-      }
-      if (e.target && e.target.id === 'inpNotifyCheckOut' && e.target.checked) {
-        requestNotificationPermission().then((granted) => {
-          if (!granted) e.target.checked = false;
-        });
-      }
-      if (e.target && e.target.id === 'inpNotifyShiftEnd' && e.target.checked) {
-        requestNotificationPermission().then((granted) => {
-          if (!granted) e.target.checked = false;
-        });
-      }
-    });
 
     // Handle keyboard: ESC closes any open sheet
     document.addEventListener('keydown', (e) => {
