@@ -34,7 +34,7 @@
           window.matchMedia('(prefers-color-scheme: dark)').matches
         );
 
-      meta.content = isDark ? '#071426' : '#2563eb';
+      meta.content = isDark ? '#000000' : '#f2f2f7';
     }
 
     const icon = $('#themeIcon');
