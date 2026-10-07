@@ -1071,10 +1071,8 @@
   // ---------- Init ----------
 
   function init() {
-    renderLegend();
-
-    renderCalendar();
-
+    // Event wiring only. Rendering is deferred until after the first paint
+    // so opening the app stays responsive on mobile devices.
     $('#prevBtn')
       .addEventListener(
         'click',
