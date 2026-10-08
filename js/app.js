@@ -49,6 +49,14 @@
     return t('dashboard.greeting_night');
   }
 
+  function subGreeting() {
+    const h = new Date().getHours();
+    if (h < 12) return t('dashboard.sub_welcome_morning');
+    if (h < 17) return t('dashboard.sub_welcome_noon');
+    if (h < 21) return t('dashboard.sub_welcome_evening');
+    return t('dashboard.sub_welcome_night');
+  }
+
   function renderDashboard() {
     const s = storage.getSettings();
     const today = new Date();
@@ -57,11 +65,38 @@
     const code = storage.getScheduledCode(dstr);
     const shift = code ? storage.getShiftByCode(code) : null;
 
-    // Hero card
+    // ----- Welcome card -----
+    // The greeting word (morning/noon/evening/night) in the current language
     $('#greetingText').textContent = greeting();
     // الاسم الافتراضي القديم "موظف" يُعامل كغير مُدخل حتى تظهر ترجمة اللغة الحالية
     const rawName = (s.name || '').trim();
-    $('#heroName').textContent = (rawName && rawName !== 'موظف') ? rawName : t('dashboard.default_name');
+    const isDefaultName = !rawName || rawName === 'موظف' || rawName === 'Employee';
+    const displayName = isDefaultName ? t('dashboard.default_name') : rawName;
+
+    // Render the personalized welcome line: "مرحباً يا [Name]" (ar) / "Welcome, [Name]" (en)
+    // We pick the template based on the *current* locale, not the original text language.
+    const isAr = !window.SPi18n || SPi18n.getLocale() === 'ar';
+    const welcomeKey = isAr ? 'dashboard.welcome_ar' : 'dashboard.welcome_en';
+    // heroName is now the welcome line itself (not just the bare name)
+    $('#heroName').textContent = SPi18n
+      ? SPi18n.t(welcomeKey, { name: displayName })
+      : (isAr ? 'مرحباً يا ' + displayName : 'Welcome, ' + displayName);
+
+    // Sub-greeting (contextual)
+    const subEl = $('#welcomeSubText');
+    if (subEl) subEl.textContent = subGreeting();
+
+    // Topbar worker name (compact) and avatar initial
+    const workerEl = $('#workerName');
+    if (workerEl) workerEl.textContent = displayName;
+    const avatarEl = $('#welcomeAvatarInitial');
+    if (avatarEl) {
+      const firstChar = (rawName && !isDefaultName)
+        ? rawName.trim().charAt(0)
+        : (isAr ? 'م' : 'S');
+      avatarEl.textContent = firstChar;
+    }
+
     // التاريخ الميلادي حسب اللغة الحالية
     if (window.SPi18n) {
       $('#todayGregorian').textContent = SPi18n.formatWeekday(today, { weekday: 'long' }) +

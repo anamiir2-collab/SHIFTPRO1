@@ -39,7 +39,8 @@
           window.matchMedia('(prefers-color-scheme: dark)').matches
         );
 
-      meta.content = isDark ? '#000000' : '#f2f2f7';
+      // Premium navy palette: deep navy in dark mode, primary navy in light
+      meta.content = isDark ? '#16203A' : '#1E2A44';
     }
 
     const icon = $('#themeIcon');
@@ -139,16 +140,25 @@
     const themeInput = $('#inpTheme');
     if (themeInput) themeInput.value = s.theme || 'auto';
 
-    $('#inpFontSize').value =
-      s.fontSize || 'medium';
+    // Safe-guard: #inpFontSize lives in the App-Control sheet, not here.
+    // Setting .value on a null element used to crash the whole sheet open.
+    const fontSizeInput = $('#inpFontSize');
+    if (fontSizeInput) fontSizeInput.value = s.fontSize || 'medium';
 
-    $('#settingsOverlay').classList.add('show');
-    $('#settingsSheet').classList.add('show');
+    const overlayEl = $('#settingsOverlay');
+    const sheetEl = $('#settingsSheet');
+    if (overlayEl) overlayEl.classList.add('show');
+    if (sheetEl) sheetEl.classList.add('show');
+
+    // Focus first field for accessibility / keyboard users
+    try { sheetEl && sheetEl.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
   }
 
   function closeSettingsSheet() {
-    $('#settingsOverlay').classList.remove('show');
-    $('#settingsSheet').classList.remove('show');
+    const overlayEl = $('#settingsOverlay');
+    const sheetEl = $('#settingsSheet');
+    if (overlayEl) overlayEl.classList.remove('show');
+    if (sheetEl) sheetEl.classList.remove('show');
   }
 
   function saveSettings() {
@@ -209,8 +219,10 @@
       theme:
         ($('#inpTheme') ? $('#inpTheme').value : (storage.getSettings().theme || 'auto')),
 
+      // Safe-guard: #inpFontSize is in App-Control sheet, not General Settings.
+      // Reading .value off null used to crash saveSettings() entirely.
       fontSize:
-        $('#inpFontSize').value
+        ($('#inpFontSize') ? $('#inpFontSize').value : (storage.getSettings().fontSize || 'medium'))
     };
 
     if (window.SPUndoRedo) SPUndoRedo.pushUndo("save settings");
@@ -1794,6 +1806,16 @@
   // =========================================================
 
   function openSheetByName(name) {
+    // Close any currently-open sheet first so we don't stack overlays.
+    // This is critical for the new in-Settings quick-link buttons.
+    try {
+      document.querySelectorAll('.sheet.show, .sheet-overlay.show').forEach((el) => {
+        el.classList.remove('show');
+      });
+    } catch (e) {
+      console.warn('[SPSettings] close-all failed', e);
+    }
+
     switch (name) {
       case 'control':
         openControlSheet();
@@ -1830,6 +1852,8 @@
       case 'about':
         openAboutSheet();
         break;
+      default:
+        console.warn('[SPSettings] unknown sheet', name);
     }
   }
 
@@ -1844,9 +1868,15 @@
     const themeBtn = $('#themeBtn');
     if (themeBtn) themeBtn.addEventListener('click', onClickOnce(cycleTheme));
 
-    // App control
+    // App control — gear icon now opens the General Settings sheet directly,
+    // because that's what users expect from a gear icon in the topbar.
+    // The App Control sheet remains reachable via More → App Control.
     const settingsQuickBtn = $('#settingsQuickBtn');
-    if (settingsQuickBtn) settingsQuickBtn.addEventListener('click', onClickOnce(openControlSheet));
+    if (settingsQuickBtn) settingsQuickBtn.addEventListener('click', onClickOnce(openSettingsSheet));
+
+    // In-Settings shortcut to the Shift Manager
+    const settingsOpenShiftsBtn = $('#settingsOpenShiftsBtn');
+    if (settingsOpenShiftsBtn) settingsOpenShiftsBtn.addEventListener('click', onClickOnce(() => openSheetByName('shifts')));
 
     const closeControlBtn = $('#closeControlBtn');
     if (closeControlBtn) closeControlBtn.addEventListener('click', closeControlSheet);
@@ -1885,75 +1915,26 @@
     const saveDatetimeBtn = $('#saveDatetimeBtn');
     if (saveDatetimeBtn) saveDatetimeBtn.addEventListener('click', onClickOnce(saveDatetimeSettings));
 
-    // Settings
-    $('#saveSettingsBtn')
-      .addEventListener(
-        'click',
-        onClickOnce(saveSettings)
-      );
-
-    $('#closeSettingsBtn')
-      .addEventListener(
-        'click',
-        closeSettingsSheet
-      );
-
-    $('#settingsOverlay')
-      .addEventListener(
-        'click',
-        closeSettingsSheet
-      );
+    // Settings — every binding null-safe to prevent one missing
+    // element from halting the entire init() chain.
+    const bind = (sel, ev, fn) => {
+      const node = $(sel);
+      if (node) node.addEventListener(ev, fn);
+      else console.warn('[SPSettings] missing element', sel);
+    };
+    bind('#saveSettingsBtn', 'click', onClickOnce(saveSettings));
+    bind('#closeSettingsBtn', 'click', closeSettingsSheet);
+    bind('#settingsOverlay', 'click', closeSettingsSheet);
 
     // Shifts
-    $('#addShiftBtn')
-      .addEventListener(
-        'click',
-        onClickOnce(
-          () => openShiftEditor(null)
-        )
-      );
-
-    $('#saveShiftBtn')
-      .addEventListener(
-        'click',
-        onClickOnce(saveShift)
-      );
-
-    $('#cancelShiftBtn')
-      .addEventListener(
-        'click',
-        closeShiftEditor
-      );
-
-    $('#shiftEditOverlay')
-      .addEventListener(
-        'click',
-        closeShiftEditor
-      );
-
-    $('#closeShiftsBtn')
-      .addEventListener(
-        'click',
-        closeShiftsSheet
-      );
-
-    $('#shiftsOverlay')
-      .addEventListener(
-        'click',
-        closeShiftsSheet
-      );
-
-    $('#applyPatternBtn')
-      .addEventListener(
-        'click',
-        onClickOnce(applyPattern)
-      );
-
-    $('#clearPatternBtn')
-      .addEventListener(
-        'click',
-        clearPattern
-      );
+    bind('#addShiftBtn', 'click', onClickOnce(() => openShiftEditor(null)));
+    bind('#saveShiftBtn', 'click', onClickOnce(saveShift));
+    bind('#cancelShiftBtn', 'click', closeShiftEditor);
+    bind('#shiftEditOverlay', 'click', closeShiftEditor);
+    bind('#closeShiftsBtn', 'click', closeShiftsSheet);
+    bind('#shiftsOverlay', 'click', closeShiftsSheet);
+    bind('#applyPatternBtn', 'click', onClickOnce(applyPattern));
+    bind('#clearPatternBtn', 'click', clearPattern);
 
     // ====== قوالب وتكرار ذكي ======
     const applyRepeatBtn = $('#applyRepeatBtn');
@@ -1963,7 +1944,8 @@
     const repeatTypeSel = $('#repeatType');
     if (repeatTypeSel) {
       repeatTypeSel.addEventListener('change', (e) => {
-        $('#customDaysField').hidden = (e.target.value !== 'custom');
+        const cdf = $('#customDaysField');
+        if (cdf) cdf.hidden = (e.target.value !== 'custom');
       });
     }
     // weekday chips
@@ -1975,17 +1957,8 @@
     });
 
     // Leave
-    $('#closeLeaveBtn')
-      .addEventListener(
-        'click',
-        closeLeaveSheet
-      );
-
-    $('#leaveOverlay')
-      .addEventListener(
-        'click',
-        closeLeaveSheet
-      );
+    bind('#closeLeaveBtn', 'click', closeLeaveSheet);
+    bind('#leaveOverlay', 'click', closeLeaveSheet);
 
     // ====== New Leave Request (i18n-aware) ======
     const newLeaveBtn = $('#newLeaveBtn');
@@ -2007,20 +1980,26 @@
     const halfDayCheck = $('#leaveHalfDayCheck');
     if (halfDayCheck) {
       halfDayCheck.addEventListener('change', (e) => {
-        $('#leaveHalfPeriod').disabled = !e.target.checked;
+        const halfPeriod = $('#leaveHalfPeriod');
+        const hoursCheckEl = $('#leaveHoursCheck');
+        const hoursInputEl = $('#leaveHoursInput');
+        if (halfPeriod) halfPeriod.disabled = !e.target.checked;
         if (e.target.checked) {
-          $('#leaveHoursCheck').checked = false;
-          $('#leaveHoursInput').disabled = true;
+          if (hoursCheckEl) hoursCheckEl.checked = false;
+          if (hoursInputEl) hoursInputEl.disabled = true;
         }
       });
     }
     const hoursCheck = $('#leaveHoursCheck');
     if (hoursCheck) {
       hoursCheck.addEventListener('change', (e) => {
-        $('#leaveHoursInput').disabled = !e.target.checked;
+        const hoursInputEl = $('#leaveHoursInput');
+        const halfDayEl = $('#leaveHalfDayCheck');
+        const halfPeriodEl = $('#leaveHalfPeriod');
+        if (hoursInputEl) hoursInputEl.disabled = !e.target.checked;
         if (e.target.checked) {
-          $('#leaveHalfDayCheck').checked = false;
-          $('#leaveHalfPeriod').disabled = true;
+          if (halfDayEl) halfDayEl.checked = false;
+          if (halfPeriodEl) halfPeriodEl.disabled = true;
         }
       });
     }
@@ -2036,115 +2015,38 @@
     }
 
     // Stats
-    $('#closeStatsBtn')
-      .addEventListener(
-        'click',
-        closeStatsSheet
-      );
-
-    $('#statsOverlay')
-      .addEventListener(
-        'click',
-        closeStatsSheet
-      );
-
-    $('#applyStatsRange')
-      .addEventListener(
-        'click',
-        onClickOnce(
-          () => {
-            const from =
-              $('#statsFrom').value;
-
-            const to =
-              $('#statsTo').value;
-
-            if (!from || !to) {
-              toast(
-                t('stats.need_dates'),
-                'warning'
-              );
-              return;
-            }
-
-            renderStats(
-              parseDate(from),
-              parseDate(to)
-            );
-
-            toast(
-              t('stats.updated'),
-              'success'
-            );
-          }
-        )
-      );
+    bind('#closeStatsBtn', 'click', closeStatsSheet);
+    bind('#statsOverlay', 'click', closeStatsSheet);
+    bind('#applyStatsRange', 'click', onClickOnce(() => {
+      const from = $('#statsFrom') ? $('#statsFrom').value : '';
+      const to = $('#statsTo') ? $('#statsTo').value : '';
+      if (!from || !to) {
+        toast(t('stats.need_dates'), 'warning');
+        return;
+      }
+      renderStats(parseDate(from), parseDate(to));
+      toast(t('stats.updated'), 'success');
+    }));
 
     // Backup
-    $('#exportBackupBtn')
-      .addEventListener(
-        'click',
-        onClickOnce(exportBackup)
-      );
-
-    $('#importBackupBtn')
-      .addEventListener(
-        'click',
-        () =>
-          $('#importBackupInput').click()
-      );
-
-    $('#importBackupInput')
-      .addEventListener(
-        'change',
-        (e) => {
-          const file =
-            e.target.files[0];
-
-          if (file) {
-            importBackup(file);
-          }
-
-          e.target.value = '';
-        }
-      );
-
-    $('#resetSettingsBtn')
-      .addEventListener(
-        'click',
-        onClickOnce(resetSettings)
-      );
-
-    $('#deleteAllBtn')
-      .addEventListener(
-        'click',
-        onClickOnce(deleteAll)
-      );
-
-    $('#closeBackupBtn')
-      .addEventListener(
-        'click',
-        closeBackupSheet
-      );
-
-    $('#backupOverlay')
-      .addEventListener(
-        'click',
-        closeBackupSheet
-      );
+    bind('#exportBackupBtn', 'click', onClickOnce(exportBackup));
+    bind('#importBackupBtn', 'click', () => {
+      const input = $('#importBackupInput');
+      if (input) input.click();
+    });
+    bind('#importBackupInput', 'change', (e) => {
+      const file = e.target.files[0];
+      if (file) importBackup(file);
+      e.target.value = '';
+    });
+    bind('#resetSettingsBtn', 'click', onClickOnce(resetSettings));
+    bind('#deleteAllBtn', 'click', onClickOnce(deleteAll));
+    bind('#closeBackupBtn', 'click', closeBackupSheet);
+    bind('#backupOverlay', 'click', closeBackupSheet);
 
     // About
-    $('#closeAboutBtn')
-      .addEventListener(
-        'click',
-        closeAboutSheet
-      );
-
-    $('#aboutOverlay')
-      .addEventListener(
-        'click',
-        closeAboutSheet
-      );
+    bind('#closeAboutBtn', 'click', closeAboutSheet);
+    bind('#aboutOverlay', 'click', closeAboutSheet);
 
     // More page
     document
