@@ -72,7 +72,7 @@
       try { SPApp.onDataChange(); } catch (e) {}
     }
     if (global.SPUtils && SPUtils.toast) {
-      SPUtils.toast(privacyOn ? t('privacy.hidden_label') : 'Visible', 'info');
+      SPUtils.toast(privacyOn ? t('privacy.hidden_label') : t('privacy.visible_label'), 'info');
     }
     return privacyOn;
   }
@@ -130,18 +130,12 @@
   function showOnboarding() {
     if (hasOnboarded()) return;
     if (!global.SPUtils) return;
-    const isAr = (global.SPi18n && SPi18n.getLocale() === 'ar');
     const { el } = SPUtils;
-    const steps = isAr ? [
-      { title: 'أهلاً بك في ShiftPro', body: 'تطبيق متكامل لإدارة الورديات والحضور والرواتب — كل شيء محلي على جهازك بدون أي خادم.' },
-      { title: 'بياناتك', body: 'أدخل اسمك وبياناتك الوظيفية من الإعدادات لتظهر في الرئيسية.' },
-      { title: 'الورديات', body: 'أضف أنواع وردياتك (نهار، ليل، إلخ) من الإعدادات، ثم حددها في التقويم.' },
-      { title: 'سجّل حضورك', body: 'اضغط زر «تسجيل حضور» يوميًا، وزر «تسجيل انصراف» عند نهاية اليوم.' }
-    ] : [
-      { title: 'Welcome to ShiftPro', body: 'A complete shift, attendance, and salary manager — fully local on your device, no server.' },
-      { title: 'Your info', body: 'Enter your name and job details in Settings to show on the home page.' },
-      { title: 'Shifts', body: 'Add your shift types (day, night, etc.) in Settings, then assign them on the calendar.' },
-      { title: 'Log attendance', body: 'Tap "Check in" daily, and "Check out" at the end of the day.' }
+    const steps = [
+      { title: t('onboard.welcome_title'), body: t('onboard.welcome_body') },
+      { title: t('onboard.step1_title'), body: t('onboard.step1_body') },
+      { title: t('onboard.step2_title'), body: t('onboard.step2_body') },
+      { title: t('onboard.step3_title'), body: t('onboard.step3_body') }
     ];
 
     let currentStep = 0;
@@ -177,10 +171,10 @@
       const btnsRow = el('div', { style: 'display:flex;gap:8px;' });
       const skipBtn = el('button', {
         style: 'flex:1;padding:10px;background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:8px;cursor:pointer;'
-      }, [isAr ? 'تخطٍ' : 'Skip']);
+      }, [t('onboard.skip')]);
       const nextBtn = el('button', {
         style: 'flex:2;padding:10px;background:var(--accent);color:var(--accent-text);border:none;border-radius:8px;cursor:pointer;font-weight:700;'
-      }, [(currentStep === steps.length - 1) ? (isAr ? 'لنبدأ' : 'Get started') : (isAr ? 'التالي' : 'Next')]);
+      }, [(currentStep === steps.length - 1) ? t('onboard.start') : t('onboard.next')]);
       skipBtn.addEventListener('click', () => {
         setOnboarded();
         try { document.body.removeChild(overlay); } catch (e) {}

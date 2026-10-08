@@ -3649,3 +3649,170 @@ body {
   .settings-control-grid{grid-template-columns:1fr;}
   .page{padding-left:14px;padding-right:14px;}
 }
+
+/* ============ Live Clock card (Africa/Cairo) ============ */
+.clock-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.clock-card .clock-ico {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.clock-card .clock-ico svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+}
+.clock-card .clock-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.clock-card .clock-time {
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .3px;
+  /* منع أي إزاحة تخطيط أثناء تحديث الثواني */
+  min-width: 9ch;
+}
+.clock-card .clock-label {
+  font-size: .74rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* ============ Calendar: official holiday cell ============ */
+.cal-cell.holiday:not(.scheduled) {
+  background: color-mix(in srgb, var(--warning) 10%, var(--panel));
+  border-color: color-mix(in srgb, var(--warning) 45%, var(--line));
+}
+.cal-cell.holiday .tag {
+  color: var(--warning);
+  opacity: 1;
+}
+.cal-cell.holiday .holiday-dot {
+  position: absolute;
+  top: 4px;
+  inset-inline-start: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--warning);
+}
+.cal-cell.ramadan-start .tag { color: var(--leave); }
+
+/* ============ Day sheet: holiday banner ============ */
+.day-holiday-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
+  margin: 10px 0 4px;
+}
+.day-holiday-card .day-holiday-ico {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--warning) 20%, transparent);
+  color: var(--warning);
+  flex-shrink: 0;
+}
+.day-holiday-card .day-holiday-ico svg { width: 16px; height: 16px; }
+.day-holiday-card .day-holiday-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.day-holiday-card strong {
+  font-size: .88rem;
+  color: var(--text);
+}
+.day-holiday-card small {
+  font-size: .72rem;
+  color: var(--muted);
+}
+
+/* ============ Reports: export menu ============ */
+.export-menu {
+  display: flex;
+  flex-direction: column;
+}
+.export-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 4px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  font-size: .9rem;
+  cursor: pointer;
+  text-align: start;
+}
+.export-item:last-child { border-bottom: 0; }
+.export-item:active { opacity: .7; }
+.export-ico {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 900;
+  color: #fff;
+  flex-shrink: 0;
+}
+.export-ico.excel { background: #16a34a; }
+.export-ico.pdf { background: #dc2626; }
+.export-ico.csv { background: #0ea5e9; }
+.export-ico.json { background: #64748b; }
+.export-ico.ics { background: #9333ea; }
+.export-ico.print { background: #475569; }
+
+/* ============ Reports: panel rows (absence / salary / stats) ============ */
+.report-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: .88rem;
+}
+.report-row:last-child { border-bottom: 0; }
+.report-row .r-label { color: var(--muted); }
+.report-row .r-value { font-weight: 800; color: var(--text); }
+.report-row .r-value.success { color: var(--success); }
+.report-row .r-value.warning { color: var(--warning); }
+.report-row .r-value.danger { color: var(--danger); }
+.report-row .r-value.accent { color: var(--accent); }
+.report-row.total {
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+  padding-top: 12px;
+}

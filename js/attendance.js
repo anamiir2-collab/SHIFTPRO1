@@ -30,12 +30,49 @@
   let activeDate = null;
   let originalEntry = null;
 
+  // ملاحظة: statusLabels الأصلي بقي للتوافق مع الكود القديم،
+  // لكن العرض يجب أن يستخدم statusLabel() المترجمة حسب اللغة الحالية.
   const statusLabels = {
     A: 'حضرت',
     X: 'مطبق (24 ساعة)',
     L: 'إجازة',
     B: 'غياب'
   };
+
+  function t(key, vars) {
+    return global.SPi18n ? global.SPi18n.t(key, vars) : key;
+  }
+
+  // اسم الحالة حسب اللغة الحالية
+  function statusLabel(code) {
+    switch (code) {
+      case 'A': return t('dashboard.status_present');
+      case 'X': return t('attendance.double_24');
+      case 'L': return t('dashboard.status_leave');
+      case 'B': return t('dashboard.status_absent');
+      default: return '';
+    }
+  }
+
+  // اسم الإجازة الرسمية المحلي لليوم (إن وُجدت)
+  function getHolidayFor(date) {
+    if (!global.SPOfficialHolidays || typeof global.SPOfficialHolidays.getOfficialHoliday !== 'function') return null;
+    try {
+      const s = storage.getSettings();
+      if (s.showHolidays === false) return null;
+      return global.SPOfficialHolidays.getOfficialHoliday(date);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function holidayTypeLabel(holiday) {
+    if (!holiday) return '';
+    const cat = holiday.category || holiday.type || 'public';
+    if (cat === 'national') return t('holiday.national');
+    if (cat === 'religious' || cat === 'islamic') return t('holiday.religious');
+    return t('holiday.public');
+  }
 
   // ---------- Hours & overtime computation ----------
 
@@ -435,14 +472,22 @@
         : null;
 
     $('#daySheetTitle').textContent =
-      `${date.getDate()} ${
-        monthNamesAr[
-          date.getMonth()
-        ]
-      } ${date.getFullYear()}`;
+      SPi18n
+        ? SPi18n.formatDate(date, { day: 'numeric', month: 'long', year: 'numeric' })
+        : `${date.getDate()} ${
+            monthNamesAr[
+              date.getMonth()
+            ]
+          } ${date.getFullYear()}`;
 
-    $('#daySheetHijri').textContent =
-      formatHijri(date);
+    // الهجري — قابل للإخفاء من الإعدادات
+    const s = storage.getSettings();
+    const hijriEl = $('#daySheetHijri');
+    if (hijriEl) {
+      const showHijri = s.showHijri !== false;
+      hijriEl.hidden = !showHijri;
+      hijriEl.textContent = showHijri ? formatHijri(date) : '';
+    }
 
     const shift =
       code
@@ -452,30 +497,31 @@
         : null;
 
     $('#daySheetSub').textContent =
-      `الوردية: ${
-        shift
-          ? shift.name
-          : 'غير محدد'
-      }` +
+      t('attendance.shift_line', {
+        shift: shift ? SPUtils.shiftDisplayName(shift) : t('status.unset')
+      }) +
       (
         shift &&
         shift.startTime
           ? ` — ${fmtTime12(
               shift.startTime
-            )} إلى ${fmtTime12(
+            )} ${t('common.to')} ${fmtTime12(
               shift.endTime
             )}`
           : ''
       ) +
       (
         entry
-          ? ` — الحضور: ${
-              statusLabels[
+          ? ` — ${t('attendance.attendance_line', {
+              status: statusLabel(
                 entry.status
-              ] || '—'
-            }`
+              ) || '—'
+            })}`
           : ''
       );
+
+    // لافتة الإجازة الرسمية داخل تفاصيل اليوم
+    renderDayHolidayCard(date);
 
     renderShiftPicker(
       code
@@ -572,6 +618,40 @@
       );
   }
 
+  // لافتة الإجازة الرسمية (اسم + تصنيف + حالة الاتساق مع الإعدادات)
+  function renderDayHolidayCard(date) {
+    const card = document.getElementById('dayHolidayCard');
+    if (!card) return;
+
+    const holiday = getHolidayFor(date);
+    const nameEl = document.getElementById('dayHolidayName');
+    const metaEl = document.getElementById('dayHolidayMeta');
+
+    if (!holiday) {
+      card.hidden = true;
+      return;
+    }
+
+    let name = holiday.name || '';
+    if (
+      global.SPOfficialHolidays &&
+      typeof global.SPOfficialHolidays.getHolidayLocalizedName === 'function'
+    ) {
+      name = global.SPOfficialHolidays.getHolidayLocalizedName(holiday);
+    }
+
+    if (nameEl) nameEl.textContent = name;
+
+    let meta = holidayTypeLabel(holiday);
+    const s = storage.getSettings();
+    if (s.holidaysAsLeave) {
+      meta += ' — ' + (s.holidaysPaid ? t('holiday.auto_leave_paid_note') : t('holiday.auto_leave_note'));
+    }
+    if (metaEl) metaEl.textContent = meta;
+
+    card.hidden = false;
+  }
+
   function closeDaySheet() {
     $('#dayOverlay')
       .classList.remove(
@@ -621,7 +701,7 @@
             'data-shift-code':
               s.code
           },
-          [s.name]
+          [SPUtils.shiftDisplayName(s)]
         );
 
         btn.addEventListener(
@@ -727,11 +807,11 @@
       }
 
       preview.textContent =
-        `المدة: ${h} ساعة — ${
-          fmtTime12(from)
-        } إلى ${
-          fmtTime12(to)
-        }`;
+        t('attendance.duration_preview', {
+          h: h,
+          from: fmtTime12(from),
+          to: fmtTime12(to)
+        });
     } else {
       preview.textContent =
         '';
@@ -789,11 +869,11 @@
 
     $('#daySheetHours')
       .textContent =
-      hours + ' س';
+      SPUtils.fmtHours(hours);
 
     $('#daySheetOvertime')
       .textContent =
-      overtime + ' س';
+      SPUtils.fmtHours(overtime);
 
     $('#daySheetLate')
       .textContent =
@@ -938,7 +1018,7 @@
         ) {
           if (!silent) {
             toast(
-              'التاريخ أو الوقت غير صحيح',
+              t('attendance.invalid_date'),
               'error'
             );
           }
@@ -954,7 +1034,7 @@
         if (hours <= 0) {
           if (!silent) {
             toast(
-              'تاريخ ووقت النهاية يجب أن يكون بعد البداية',
+              t('attendance.end_after_start'),
               'error'
             );
           }
@@ -965,7 +1045,7 @@
         if (hours > 36) {
           if (!silent) {
             toast(
-              'أقصى مدة لتسجيل الحضور هي 36 ساعة',
+              t('attendance.max_36'),
               'error'
             );
           }
@@ -1250,9 +1330,9 @@
     haptic(12);
 
     toast(
-      `تم تسجيل: ${
-        statusLabels[code]
-      }`,
+      t('attendance.saved_status', {
+        status: statusLabel(code)
+      }),
       'success'
     );
 
@@ -1270,12 +1350,12 @@
 
     const ok =
       await confirmDialog(
-        'سيتم حذف تسجيل الحضور لهذا اليوم. هل أنت متأكد؟',
+        t('attendance.delete_confirm_msg'),
         {
-          okText: 'حذف',
-          cancelText: 'إلغاء',
+          okText: t('common.delete'),
+          cancelText: t('common.cancel'),
           danger: true,
-          title: 'حذف التسجيل'
+          title: t('attendance.delete_title')
         }
       );
 
@@ -1291,7 +1371,7 @@
     haptic(15);
 
     toast(
-      'تم حذف التسجيل',
+      t('attendance.deleted'),
       'success'
     );
 
@@ -1312,7 +1392,7 @@
 
     if (!entry) {
       toast(
-        'حدد نوع الحضور أولًا (حضرت / مطبق / إجازة / غياب)',
+        t('attendance.no_status'),
         'warning'
       );
 
@@ -1337,7 +1417,7 @@
         h > 36
       ) {
         toast(
-          'الوقت غير منطقي — تحقق من القيم',
+          t('attendance.invalid_time'),
           'error'
         );
 
@@ -1361,7 +1441,7 @@
         leaveHours > 24
       ) {
         toast(
-          'عدد ساعات الإجازة يجب أن يكون من 0 إلى 24 ساعة',
+          t('attendance.leave_hours_range'),
           'error'
         );
 
@@ -1385,7 +1465,7 @@
     haptic(12);
 
     toast(
-      'تم الحفظ بنجاح',
+      t('msg.saved'),
       'success'
     );
 
@@ -1402,7 +1482,7 @@
       !originalEntry
     ) {
       toast(
-        'لا يوجد تسجيل لنسخه',
+        t('attendance.nothing_to_copy'),
         'warning'
       );
 
@@ -1411,11 +1491,11 @@
 
     const ok =
       await confirmDialog(
-        'سيتم نسخ تسجيل هذا اليوم (الحالة والوقت والملاحظة) إلى أيام أخرى. تستطيع تحديد الأيام من التقويم بعد الإغلاق. اضغط مطولاً على أي يوم لتحديده ثم اضغط "تطبيق".\n\nملاحظة: لن يتم نسخ نوع الوردية.',
+        t('attendance.copy_confirm'),
         {
-          okText: 'بدء التحديد',
-          cancelText: 'إلغاء',
-          title: 'نسخ التسجيل'
+          okText: t('attendance.copy_start'),
+          cancelText: t('common.cancel'),
+          title: t('attendance.copy_title')
         }
       );
 
@@ -1426,7 +1506,7 @@
     closeDaySheet();
 
     toast(
-      'حدد الأيام في التقويم ثم اضغط "تطبيق وردية" واختر نسخ التسجيل',
+      t('attendance.copy_hint_toast'),
       'info'
     );
 
@@ -1442,13 +1522,13 @@
     );
 
     $('#selCount').textContent =
-      'حدد الأيام لنسخ التسجيل إليها';
+      t('attendance.copy_toolbar');
 
     const applyBtn =
       $('#applyShiftToSelected');
 
     applyBtn.textContent =
-      'نسخ التسجيل';
+      t('attendance.copy_title');
 
     applyBtn.dataset.mode =
       'copy';
@@ -1495,11 +1575,7 @@
     haptic(15);
 
     toast(
-      `تم تسجيل الحضور: ${
-        fmtTime12(
-          entry.from
-        )
-      }`,
+      t('attendance.checkin_done_toast', { time: fmtTime12(entry.from) }),
       'success'
     );
 
@@ -1526,7 +1602,7 @@
       )
     ) {
       toast(
-        'لم تسجل حضور بعد — اضغط "تسجيل حضور" أولًا',
+        t('attendance.no_checkin_toast'),
         'warning'
       );
 
@@ -1550,11 +1626,7 @@
     haptic(15);
 
     toast(
-      `تم تسجيل الانصراف: ${
-        fmtTime12(
-          entry.to
-        )
-      }`,
+      t('attendance.checkout_done_toast', { time: fmtTime12(entry.to) }),
       'success'
     );
 

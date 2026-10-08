@@ -37,7 +37,7 @@
   // ---------- Defaults ----------
   const DEFAULT_SETTINGS = {
     // Employee
-    name: 'موظف',
+    name: '',               // يُعرض t('dashboard.default_name') لو فارغ
     job: '',
     company: '',
     employeeId: '',
@@ -65,6 +65,14 @@
     notifyShiftEnd: false,
     notifyCheckInTime: '07:00',
     notifyCheckOutTime: '19:00',
+    // ====== Date & Time / Holidays (Egypt) — opt-in by default ======
+    showClock: true,         // ساعة حية على الرئيسية
+    showHijri: true,         // التاريخ الهجري
+    showHolidays: true,      // عرض الإجازات الرسمية في التقويم (عرض فقط)
+    holidaysAsLeave: false,  // اعتبار الإجازة الرسمية إجازة تلقائيًا (opt-in)
+    holidaysPaid: false,     // الإجازات الرسمية مدفوعة (opt-in — يتطلب holidaysAsLeave)
+    holidayReminder: false,  // تذكير بالإجازات الرسمية (opt-in)
+    officialHolidayRate: 1,  // معامل العمل في الإجازة الرسمية (سلوك قائم)
     // Misc
     currency: 'ج',
     schemaVersion: 2
@@ -75,6 +83,7 @@
     {
       id: 'day',
       name: 'نهار',
+      nameEn: 'Day',
       code: 'D',
       startTime: '07:00',
       endTime: '19:00',
@@ -87,6 +96,7 @@
     {
       id: 'night',
       name: 'ليل',
+      nameEn: 'Night',
       code: 'N',
       startTime: '19:00',
       endTime: '07:00',
@@ -99,6 +109,7 @@
     {
       id: 'off',
       name: 'إجازة دورية',
+      nameEn: 'Rest day',
       code: 'O',
       startTime: '',
       endTime: '',
@@ -111,6 +122,7 @@
     {
       id: 'shift24',
       name: 'مطبق 24 ساعة',
+      nameEn: 'Double 24h',
       code: 'X',
       startTime: '07:00',
       endTime: '07:00',
@@ -149,7 +161,10 @@
       console.error('[Storage] Failed to write', key, e);
       // Likely quota exceeded
       if (global.SPUtils && SPUtils.toast) {
-        SPUtils.toast('تعذّر حفظ البيانات — مساحة التخزين ممتلئة', 'error');
+        SPUtils.toast(
+          (global.SPi18n ? SPi18n.t('msg.storage_full') : 'Storage full'),
+          'error'
+        );
       }
       return false;
     }
@@ -291,6 +306,18 @@
       writeJSON(K.shifts, DEFAULT_SHIFTS.slice());
       return DEFAULT_SHIFTS.slice();
     }
+    // ترقية غير مدمرة: أضف nameEn للورديات المدمجة القديمة بدون كسر بيانات المستخدم
+    let changed = false;
+    arr.forEach((s) => {
+      if (s && s.isBuiltIn && !s.nameEn) {
+        const def = DEFAULT_SHIFTS.find((d) => d.id === s.id);
+        if (def) {
+          s.nameEn = def.nameEn;
+          changed = true;
+        }
+      }
+    });
+    if (changed) writeJSON(K.shifts, arr);
     return arr;
   }
   function getShiftById(id) {
@@ -378,7 +405,7 @@
   }
 
   function importAll(json) {
-    if (!json || !json.data) throw new Error('ملف النسخة الاحتياطية غير صالح');
+    if (!json || !json.data) throw new Error('invalid-backup-file');
     const d = json.data;
     if (d.settings) writeJSON(K.settings, Object.assign({}, DEFAULT_SETTINGS, d.settings));
     if (d.attendance && typeof d.attendance === 'object') writeJSON(K.attendance, d.attendance);

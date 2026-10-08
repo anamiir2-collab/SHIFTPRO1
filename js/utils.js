@@ -122,7 +122,9 @@
           });
         }
       }
-      return _hijriFmt.format(date) + ' هـ';
+      const out = _hijriFmt.format(date);
+      // Intl بيرجّع "هـ" أصلًا — نتجنب تكرار اللاحقة
+      return out.indexOf('هـ') >= 0 ? out : out + ' هـ';
     } catch (e) {
       return '';
     }
@@ -205,6 +207,22 @@
     // وحدة الساعات حسب اللغة
     const unit = (global.SPi18n && SPi18n.getLocale() === 'ar') ? ' س' : ' h';
     return fmtNum(n, n % 1 === 0 ? 0 : 2) + unit;
+  }
+
+  // ---------- اسم الوردية المعروض (يترجم أسماء الورديات المدمجة) ----------
+  // الورديات المدمجة (نهار/ليل/إجازة دورية/مطبق) تُعرض بالإنجليزية
+  // في الوضع الإنجليزي عبر nameEn — الورديات المخصصة تبقى كما كتبها المستخدم.
+  function shiftDisplayName(shift) {
+    if (!shift) return '';
+    if (
+      global.SPi18n &&
+      SPi18n.getLocale() === 'en' &&
+      shift.isBuiltIn &&
+      shift.nameEn
+    ) {
+      return shift.nameEn;
+    }
+    return shift.name || '';
   }
 
   // ---------- Misc ----------
@@ -321,7 +339,7 @@
     monthNames, monthShort, weekdayNames, weekdayShort,
     formatHijri,
     timeToMin, minToTime, timeDiffMin, computeRangeHours, fmtTime12, nowHHMM, fmtDateTime,
-    fmtNum, fmtCurrency, fmtHours,
+    fmtNum, fmtCurrency, fmtHours, shiftDisplayName,
     debounce, uuid, deepClone,
     toast, confirmDialog,
     haptic, onClickOnce,

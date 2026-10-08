@@ -13,6 +13,11 @@
 
   const storage = SPStorage;
 
+  // دالة ترجمة محلية
+  function t(key, vars) {
+    return global.SPi18n ? global.SPi18n.t(key, vars) : key;
+  }
+
   // =========================================================
   // Theme & font size
   // =========================================================
@@ -72,14 +77,13 @@
     haptic(10);
 
     toast(
-      'الوضع: ' +
-      (
-        next === 'auto'
-          ? 'تلقائي'
+      t('settings.theme_changed', {
+        theme: next === 'auto'
+          ? t('settings.theme_auto')
           : next === 'dark'
-            ? 'داكن'
-            : 'نهاري'
-      ),
+            ? t('settings.theme_dark')
+            : t('settings.theme_light')
+      }),
       'info'
     );
   }
@@ -156,7 +160,7 @@
 
     const s = {
       name:
-        $('#inpName').value.trim() || 'موظف',
+        $('#inpName').value.trim(),
 
       job:
         $('#inpJob').value.trim(),
@@ -217,7 +221,7 @@
     applyTheme();
     closeSettingsSheet();
 
-    toast('تم حفظ الإعدادات', 'success');
+    toast(t('settings.saved_toast'), 'success');
 
     SPApp.onDataChange();
   }
@@ -242,7 +246,7 @@
     list.innerHTML = '';
     const tpls = (window.SPTemplates) ? SPTemplates.getTemplates() : [];
     if (tpls.length === 0) {
-      list.appendChild(el('p', { class: 'muted fs-sm ta-c', style: 'padding:10px;' }, ['لا قوالب']));
+      list.appendChild(el('p', { class: 'muted fs-sm ta-c', style: 'padding:10px;' }, [t('shifts.no_templates')]));
       return;
     }
     tpls.forEach((tpl) => {
@@ -259,11 +263,11 @@
       card.addEventListener('click', onClickOnce(() => {
         const start = $('#patternStart').value;
         if (!start) {
-          toast('حدد يوم بداية النمط أولًا', 'warning');
+          toast(t('shifts.need_start_tpl'), 'warning');
           return;
         }
         const count = SPTemplates.applyTemplate(tpl.id, start, 30);
-        toast('تم تطبيق ' + count + ' يوم', 'success');
+        toast(t('shifts.tpl_applied', { n: count }), 'success');
         closeShiftsSheet();
         SPApp.onDataChange();
       }));
@@ -276,7 +280,7 @@
     if (!sel) return;
     sel.innerHTML = '';
     storage.getShifts().forEach((s) => {
-      sel.appendChild(el('option', { value: s.code }, [s.name + ' (' + s.code + ')']));
+      sel.appendChild(el('option', { value: s.code }, [SPUtils.shiftDisplayName(s) + ' (' + s.code + ')']));
     });
   }
 
@@ -287,11 +291,11 @@
     const to = $('#repeatTo').value;
     const type = $('#repeatType').value;
     if (!shiftCode || !from || !to) {
-      toast('املأ كل الحقول', 'warning');
+      toast(t('shifts.fill_all'), 'warning');
       return;
     }
     if (to < from) {
-      toast('تاريخ النهاية قبل البداية', 'warning');
+      toast(t('shifts.end_before_start'), 'warning');
       return;
     }
     let customDays = null;
@@ -299,14 +303,14 @@
       customDays = Array.from(document.querySelectorAll('#weekdayChips .chip.active'))
         .map((b) => Number(b.dataset.day));
       if (customDays.length === 0) {
-        toast('اختر يومًا واحدًا على الأقل', 'warning');
+        toast(t('shifts.pick_one_day'), 'warning');
         return;
       }
     }
     const count = SPTemplates.applyRepeatRule({
       shiftCode, startDate: from, endDate: to, type, customDays
     });
-    toast('تم تطبيق ' + count + ' يوم', 'success');
+    toast(t('shifts.repeat_applied', { n: count }), 'success');
     closeShiftsSheet();
     SPApp.onDataChange();
   }
@@ -350,7 +354,7 @@
           el('div', {
             class: 't1'
           }, [
-            s.name + ' (' + s.code + ')'
+            SPUtils.shiftDisplayName(s) + ' (' + s.code + ')'
           ])
         ])
       );
@@ -360,14 +364,14 @@
           class: 't2'
         }, [
           s.startTime
-            ? `${s.startTime} - ${s.endTime} (${s.hours} س)`
-            : 'وردية إجازة',
+            ? `${s.startTime} - ${s.endTime} (${SPUtils.fmtHours(s.hours)})`
+            : t('shifts.leave_shift'),
 
           ' • ',
 
           s.isWorkDay
-            ? 'يوم عمل'
-            : 'إجازة'
+            ? t('shifts.workday')
+            : t('shifts.off')
         ])
       );
 
@@ -377,7 +381,7 @@
       const editBtn = el('button', {
         class: 'icon-btn',
         style: 'width:36px;height:36px;',
-        'aria-label': 'تعديل'
+        'aria-label': t('common.edit')
       });
 
       editBtn.innerHTML =
@@ -400,16 +404,16 @@
           style:
             'width:36px;height:36px;color:var(--danger);',
           'aria-label':
-            'حذف'
+            t('common.delete')
         }, ['×']);
 
         delBtn.addEventListener(
           'click',
           async () => {
             const ok = await confirmDialog(
-              `حذف وردية "${s.name}"؟`,
+              t('shifts.delete_confirm', { name: SPUtils.shiftDisplayName(s) }),
               {
-                okText: 'حذف',
+                okText: t('common.delete'),
                 danger: true
               }
             );
@@ -423,7 +427,7 @@
             SPApp.onDataChange();
 
             toast(
-              'تم حذف الوردية',
+              t('shifts.deleted'),
               'success'
             );
           }
@@ -445,8 +449,8 @@
 
     $('#shiftEditTitle').textContent =
       isNew
-        ? 'وردية جديدة'
-        : 'تعديل الوردية';
+        ? t('shifts.new_shift')
+        : t('shifts.title');
 
     $('#shiftName').value =
       shift ? shift.name : '';
@@ -494,7 +498,7 @@
 
     if (!name) {
       toast(
-        'أدخل اسم الوردية',
+        t('shifts.enter_name'),
         'warning'
       );
       return;
@@ -502,7 +506,7 @@
 
     if (!code) {
       toast(
-        'أدخل رمز الوردية',
+        t('shifts.enter_code'),
         'warning'
       );
       return;
@@ -561,7 +565,7 @@
     SPApp.onDataChange();
 
     toast(
-      'تم حفظ الوردية',
+      t('shifts.saved'),
       'success'
     );
   }
@@ -581,7 +585,7 @@
 
     if (!startDate) {
       toast(
-        'حدد يوم البداية',
+        t('shifts.need_start'),
         'warning'
       );
       return;
@@ -595,7 +599,7 @@
 
     if (codes.length === 0) {
       toast(
-        'أدخل تسلسل الورديات (مثال: D,N,O)',
+        t('shifts.need_seq'),
         'warning'
       );
       return;
@@ -612,7 +616,7 @@
 
     if (invalid) {
       toast(
-        `رمز غير معروف: ${invalid}`,
+        t('shifts.unknown_code', { code: invalid }),
         'error'
       );
       return;
@@ -638,7 +642,7 @@
     storage.setScheduleMany(entries);
 
     toast(
-      'تم تطبيق النمط على 30 يوم',
+      t('shifts.pattern_applied'),
       'success'
     );
 
@@ -652,7 +656,7 @@
     $('#patternSeq').value = '';
 
     toast(
-      'تم مسح النمط (لإزالة التطبيق حدد الأيام يدويًا)',
+      t('shifts.pattern_cleared'),
       'info'
     );
   }
@@ -700,7 +704,7 @@
 
   function saveNewLeaveRequest() {
     if (!window.SPLeaves) {
-      toast('موديول الإجازات غير متاح', 'error');
+      toast(t('leave.module_missing'), 'error');
       return;
     }
     const type = $('#leaveTypeSelect').value;
@@ -924,11 +928,11 @@
     const types = useLeavesModule
       ? SPLeaves.LEAVE_TYPES.map((t) => ({ key:t.id, label:SPLeaves.getTypeName(t.id), color:t.color }))
       : [
-          {key:'annual',label:'إجازة سنوية',color:'#315f9f'},
-          {key:'casual',label:'إجازة عارضة',color:'#2e8b68'},
-          {key:'sick',label:'إجازة مرضية',color:'#c95353'},
-          {key:'unpaid',label:'إجازة بدون راتب',color:'#748095'},
-          {key:'periodic',label:'إجازة دورية',color:'#c88928'}
+          {key:'annual',label:t('leave.annual_long'),color:'#315f9f'},
+          {key:'casual',label:t('leave.casual_long'),color:'#2e8b68'},
+          {key:'sick',label:t('leave.sick_long'),color:'#c95353'},
+          {key:'unpaid',label:t('leave.unpaid_long'),color:'#748095'},
+          {key:'periodic',label:t('leave.periodic_long'),color:'#c88928'}
         ];
 
     const previous = select.value;
@@ -940,7 +944,7 @@
 
     const totalRemaining = types.reduce((sum,t) => sum + Math.max(0, Number((bal[t.key]||{}).remaining) || 0), 0);
     const totalRemainingEl = $('#leaveTotalRemaining');
-    if (totalRemainingEl) totalRemainingEl.textContent = formatLeaveDays(totalRemaining) + ' يوم';
+    if (totalRemainingEl) totalRemainingEl.textContent = formatLeaveDays(totalRemaining) + ' ' + t('leave.days_unit');
 
     function renderSelected() {
       const key = select.value;
@@ -959,22 +963,22 @@
             '<i style="width:11px;height:11px;border-radius:50%;display:inline-block;background:'+type.color+'"></i>' +
             '<strong>'+type.label+'</strong>' +
           '</div>' +
-          '<span class="chip">'+formatLeaveDays(remaining)+' متبقي</span>' +
+          '<span class="chip">'+formatLeaveDays(remaining)+' '+t('leave.remaining_short')+'</span>' +
         '</div>' +
-        '<div class="row between fs-sm"><span class="muted">المستخدم</span><strong>'+formatLeaveDays(usedDays)+' يوم</strong></div>' +
+        '<div class="row between fs-sm"><span class="muted">'+t('leave.used')+'</span><strong>'+formatLeaveDays(usedDays)+' '+t('leave.days_unit')+'</strong></div>' +
         '<div class="leave-progress"><span style="width:'+pct+'%"></span></div>' +
-        '<div class="row between mt-2 fs-sm"><span class="muted">إجمالي الرصيد</span><strong>'+formatLeaveDays(total)+' يوم</strong></div>' +
+        '<div class="row between mt-2 fs-sm"><span class="muted">'+t('leave.total_balance')+'</span><strong>'+formatLeaveDays(total)+' '+t('leave.days_unit')+'</strong></div>' +
         '<div class="field-row mt-3">' +
-          '<div class="field"><label>إجمالي الرصيد</label><input type="number" min="0" step="0.5" value="'+total+'" data-leave-key="'+type.key+'" data-leave-field="total"></div>' +
-          '<div class="field"><label>الرصيد المرحّل</label><input type="number" min="0" step="0.5" value="'+(Number(v.carryover)||0)+'" data-leave-key="'+type.key+'" data-leave-field="carryover"></div>' +
+          '<div class="field"><label>'+t('leave.total_balance')+'</label><input type="number" min="0" step="0.5" value="'+total+'" data-leave-key="'+type.key+'" data-leave-field="total"></div>' +
+          '<div class="field"><label>'+t('leave.carryover')+'</label><input type="number" min="0" step="0.5" value="'+(Number(v.carryover)||0)+'" data-leave-key="'+type.key+'" data-leave-field="carryover"></div>' +
         '</div>' +
         (useLeavesModule ?
-          '<label class="setting-row" style="margin-top:6px;"><span class="meta"><span class="t1">تفعيل الترحيل</span><span class="t2">استخدام الرصيد المرحّل</span></span><span class="switch"><input type="checkbox" '+(v.carryoverEnabled?'checked':'')+' data-leave-key="'+type.key+'" data-leave-field="carryoverEnabled"><span class="slider"></span></span></label>' : '') +
-        '<p class="hint" style="margin-bottom:0;">المستخدم محسوب تلقائيًا من الإجازات المسجلة والطلبات المقبولة.</p>';
+          '<label class="setting-row" style="margin-top:6px;"><span class="meta"><span class="t1">'+t('leave.carryover_enable')+'</span><span class="t2">'+t('leave.carryover_sub')+'</span></span><span class="switch"><input type="checkbox" '+(v.carryoverEnabled?'checked':'')+' data-leave-key="'+type.key+'" data-leave-field="carryoverEnabled"><span class="slider"></span></span></label>' : '') +
+        '<p class="hint" style="margin-bottom:0;">'+t('leave.auto_note')+'</p>';
       list.innerHTML='';
       list.appendChild(card);
 
-      const saveBtn = el('button',{class:'btn primary block sm mt-2'},['حفظ رصيد الإجازة']);
+      const saveBtn = el('button',{class:'btn primary block sm mt-2'},[t('leave.save_balance')]);
       saveBtn.addEventListener('click', saveLeaveBalance);
       list.appendChild(saveBtn);
     }
@@ -1045,7 +1049,7 @@
     storage.saveLeaveBalance(bal);
 
     toast(
-      (window.SPi18n ? SPi18n.t('msg.saved') : 'تم الحفظ بنجاح'),
+      t('msg.saved'),
       'success'
     );
 
@@ -1090,7 +1094,7 @@
           style:
             'padding:16px;'
         }, [
-          'لا توجد إجازات مسجلة'
+          t('leave.no_records')
         ])
       );
 
@@ -1098,12 +1102,12 @@
     }
 
     const typeNames = {
-      annual: 'سنوية',
-      casual: 'عارضة',
-      sick: 'مرضية',
-      unpaid: 'بدون راتب',
-      periodic: 'دورية',
-      other: 'أخرى'
+      annual: t('leave.annual'),
+      casual: t('leave.casual'),
+      sick: t('leave.sick'),
+      unpaid: t('leave.unpaid'),
+      periodic: t('leave.periodic'),
+      other: t('common.none')
     };
 
     records.forEach(
@@ -1115,7 +1119,7 @@
 
         const typeName =
           typeNames[type] ||
-          'إجازة';
+          t('leave.title');
 
         const hours =
           getLeaveHours(entry);
@@ -1156,7 +1160,7 @@
             class:
               'muted fs-xs mt-1'
           }, [
-            `${formatLeaveDays(days)} يوم • ${fmtNum(hours, 1)} ساعة`
+            `${formatLeaveDays(days)} ${t('leave.days_unit')} • ${fmtNum(hours, 1)} ${t('leave.hours_unit')}`
           ])
         );
 
@@ -1276,7 +1280,7 @@
 
     grid.appendChild(
       makeStatCard(
-        'إجمالي ساعات',
+        t('stats.total_hours'),
         fmtNum(
           result.totalHours,
           1
@@ -1287,7 +1291,7 @@
 
     grid.appendChild(
       makeStatCard(
-        'متوسط ساعات/يوم',
+        t('stats.avg_per_day'),
         fmtNum(
           avgHours,
           1
@@ -1298,7 +1302,7 @@
 
     grid.appendChild(
       makeStatCard(
-        'أيام حضور',
+        t('stats.present_days'),
         String(result.counts.A),
         'success'
       )
@@ -1306,7 +1310,7 @@
 
     grid.appendChild(
       makeStatCard(
-        'أيام مطبق',
+        t('stats.double_days'),
         String(result.counts.X),
         'accent'
       )
@@ -1314,7 +1318,7 @@
 
     grid.appendChild(
       makeStatCard(
-        'أيام إجازة',
+        t('stats.leave_days'),
         String(result.counts.L),
         'warning'
       )
@@ -1322,7 +1326,7 @@
 
     grid.appendChild(
       makeStatCard(
-        'أيام غياب',
+        t('stats.absent_days'),
         String(result.counts.B),
         'danger'
       )
@@ -1330,7 +1334,7 @@
 
     grid.appendChild(
       makeStatCard(
-        'ساعات إضافي',
+        t('stats.overtime_hours'),
         fmtNum(
           result.overtimeHours,
           1
@@ -1341,7 +1345,7 @@
 
     grid.appendChild(
       makeStatCard(
-        'نسبة الحضور',
+        t('stats.attendance_pct'),
         compliancePct + '%',
         compliancePct >= 80
           ? 'success'
@@ -1351,7 +1355,7 @@
 
     grid.appendChild(
       makeStatCard(
-        'إجمالي الراتب',
+        t('stats.gross'),
         fmtCurrency(
           result.grossSalary
         ),
@@ -1361,7 +1365,7 @@
 
     grid.appendChild(
       makeStatCard(
-        'صافي المستحق',
+        t('stats.net'),
         fmtCurrency(
           result.netSalary
         ),
@@ -1447,7 +1451,7 @@
     );
 
     toast(
-      'تم تصدير النسخة الاحتياطية',
+      t('backup.exported'),
       'success'
     );
   }
@@ -1466,14 +1470,14 @@
 
           const ok =
             await confirmDialog(
-              'سيتم استبدال جميع البيانات الحالية بالبيانات من الملف. متابعة؟',
+              t('backup.replaced_confirm'),
               {
                 okText:
-                  'استبدال',
+                  t('backup.replace_btn'),
                 danger:
                   true,
                 title:
-                  'استيراد نسخة احتياطية'
+                  t('backup.import_title')
               }
             );
 
@@ -1482,7 +1486,7 @@
           storage.importAll(json);
 
           toast(
-            'تم استيراد النسخة بنجاح',
+            t('backup.imported'),
             'success'
           );
 
@@ -1494,7 +1498,7 @@
 
         } catch (e) {
           toast(
-            'الملف غير صالح: ' +
+            t('backup.invalid_file') + ': ' +
             e.message,
             'error'
           );
@@ -1507,14 +1511,14 @@
   async function resetSettings() {
     const ok =
       await confirmDialog(
-        'سيتم إعادة الإعدادات إلى الوضع الافتراضي مع الاحتفاظ ببيانات الحضور. متابعة؟',
+        t('backup.reset_confirm_msg'),
         {
           okText:
-            'استعادة',
+            t('backup.restore_btn'),
           danger:
             true,
           title:
-            'استعادة الإعدادات الافتراضية'
+            t('backup.reset_title')
         }
       );
 
@@ -1533,7 +1537,7 @@
     applyTheme();
 
     toast(
-      'تمت استعادة الإعدادات الافتراضية',
+      t('backup.restored'),
       'success'
     );
 
@@ -1543,14 +1547,14 @@
   async function deleteAll() {
     const ok =
       await confirmDialog(
-        '⚠️ سيتم حذف جميع البيانات نهائيًا (الحضور، الورديات، الإعدادات، النسخ الاحتياطية المحلية). لا يمكن التراجع! متابعة؟',
+        t('backup.delete_confirm_msg'),
         {
           okText:
-            'حذف الكل',
+            t('backup.delete_all_btn2'),
           danger:
             true,
           title:
-            'حذف جميع البيانات'
+            t('backup.delete_title')
         }
       );
 
@@ -1558,10 +1562,10 @@
 
     const ok2 =
       await confirmDialog(
-        'تأكيد أخير — اكتب "نعم" في رأسك واضغط تأكيد. كل البيانات ستُفقد.',
+        t('backup.delete_final'),
         {
           okText:
-            'أؤكد الحذف',
+            t('backup.confirm_delete_btn'),
           danger:
             true
         }
@@ -1572,7 +1576,7 @@
     storage.clearAll();
 
     toast(
-      'تم حذف جميع البيانات',
+      t('backup.deleted_all'),
       'success'
     );
 
@@ -1650,18 +1654,18 @@
     const btn = $('#requestNotificationBtn');
     if (!state) return;
     if (!('Notification' in window)) {
-      state.textContent = 'الإشعارات غير مدعومة على هذا المتصفح';
+      state.textContent = t('notifsheet.state_unsupported');
       if (btn) btn.hidden = true;
       return;
     }
     const p = Notification.permission;
     state.textContent =
-      p === 'granted' ? 'حالة الإشعارات: مفعلة' :
-      p === 'denied' ? 'حالة الإشعارات: مرفوضة من المتصفح' :
-      'حالة الإشعارات: تحتاج إذن';
+      p === 'granted' ? t('notifsheet.state_on') :
+      p === 'denied' ? t('notifsheet.state_denied') :
+      t('notifsheet.state_need');
     if (btn) {
       btn.hidden = p === 'granted';
-      btn.textContent = p === 'denied' ? 'افتح إعدادات المتصفح' : 'تفعيل';
+      btn.textContent = p === 'denied' ? t('notifsheet.open_settings') : t('notifsheet.enable_btn');
     }
   }
 
@@ -1670,15 +1674,15 @@
     const granted = await SPNotifications.requestPermission();
     updateNotificationPermissionUI();
     if (granted) {
-      toast('تم تفعيل إشعارات ShiftPro', 'success');
+      toast(t('notifsheet.granted_toast'), 'success');
     } else {
-      toast('لم يتم منح إذن الإشعارات', 'warning');
+      toast(t('notifsheet.denied_toast'), 'warning');
     }
   }
 
   function saveNotificationsSettings() {
     if (!window.SPNotifications) {
-      toast('موديول الإشعارات غير متاح', 'error');
+      toast(t('notifsheet.module_missing'), 'error');
       return;
     }
     const enabled = !!$('#notifEnabled')?.checked;
@@ -1711,8 +1715,78 @@
       SPNotifications.stop();
     }
 
-    toast('تم حفظ التذكيرات والإشعارات', 'success');
+    toast(t('notifsheet.saved_toast'), 'success');
     updateNotificationPermissionUI();
+  }
+
+  // =========================================================
+  // Date & Time (الساعة / الهجري / الإجازات الرسمية)
+  // =========================================================
+
+  function openDatetimeSheet() {
+    const s = storage.getSettings();
+
+    const showClock = $('#inpShowClock');
+    const showHijri = $('#inpShowHijri');
+    const showHolidays = $('#inpShowHolidays');
+    const holidaysAsLeave = $('#inpHolidaysAsLeave');
+    const holidaysPaid = $('#inpHolidaysPaid');
+    const holidayReminder = $('#inpHolidayReminder');
+    const holidayRate = $('#inpOfficialHolidayRate');
+
+    if (showClock) showClock.checked = s.showClock !== false;
+    if (showHijri) showHijri.checked = s.showHijri !== false;
+    if (showHolidays) showHolidays.checked = s.showHolidays !== false;
+    if (holidaysAsLeave) holidaysAsLeave.checked = !!s.holidaysAsLeave;
+    if (holidaysPaid) holidaysPaid.checked = !!s.holidaysPaid;
+    if (holidayReminder) holidayReminder.checked = !!s.holidayReminder;
+    if (holidayRate) holidayRate.value = (s.officialHolidayRate != null ? s.officialHolidayRate : 1);
+
+    $('#datetimeOverlay').classList.add('show');
+    $('#datetimeSheet').classList.add('show');
+  }
+
+  function closeDatetimeSheet() {
+    $('#datetimeOverlay')?.classList.remove('show');
+    $('#datetimeSheet')?.classList.remove('show');
+  }
+
+  function saveDatetimeSettings() {
+    const showClock = !!$('#inpShowClock')?.checked;
+    const showHijri = !!$('#inpShowHijri')?.checked;
+    const showHolidays = !!$('#inpShowHolidays')?.checked;
+    let holidaysAsLeave = !!$('#inpHolidaysAsLeave')?.checked;
+    let holidaysPaid = !!$('#inpHolidaysPaid')?.checked;
+    const holidayReminder = !!$('#inpHolidayReminder')?.checked;
+
+    let officialHolidayRate = Number($('#inpOfficialHolidayRate')?.value);
+    if (!Number.isFinite(officialHolidayRate)) officialHolidayRate = 1;
+    officialHolidayRate = Math.min(5, Math.max(0, officialHolidayRate));
+
+    // المدفوعة تعمل فقط مع الاعتبار التلقائي
+    if (holidaysPaid && !holidaysAsLeave) holidaysAsLeave = true;
+    if (!holidaysAsLeave) holidaysPaid = false;
+
+    if (window.SPUndoRedo) SPUndoRedo.pushUndo('save settings');
+
+    storage.saveSettings({
+      showClock,
+      showHijri,
+      showHolidays,
+      holidaysAsLeave,
+      holidaysPaid,
+      holidayReminder,
+      officialHolidayRate
+    });
+
+    // تطبيق فوري
+    if (window.SPClock && SPClock.applyVisibility) SPClock.applyVisibility();
+    if (showClock && window.SPClock) SPClock.start();
+
+    toast(t('settings.saved_toast'), 'success');
+
+    closeDatetimeSheet();
+    SPApp.onDataChange();
   }
 
   // =========================================================
@@ -1731,6 +1805,10 @@
 
       case 'notifications':
         openNotificationsSheet();
+        break;
+
+      case 'datetime':
+        openDatetimeSheet();
         break;
 
       case 'shifts':
@@ -1782,7 +1860,7 @@
       if (window.SPi18n) SPi18n.toggleLocale();
       const label = $('#settingsLangLabel');
       if (label) label.textContent = (window.SPi18n ? SPi18n.getLocale() : 'ar').toUpperCase();
-      toast('تم تغيير اللغة', 'info');
+      toast(t('settings.language_changed'), 'info');
     }));
     const settingsUndoBtn = $('#settingsUndoBtn');
     if (settingsUndoBtn) settingsUndoBtn.addEventListener('click', onClickOnce(() => window.SPUndoRedo && SPUndoRedo.undo()));
@@ -1798,6 +1876,14 @@
     if (requestNotificationBtn) requestNotificationBtn.addEventListener('click', onClickOnce(requestNotificationsPermission));
     const saveNotificationsBtn = $('#saveNotificationsBtn');
     if (saveNotificationsBtn) saveNotificationsBtn.addEventListener('click', onClickOnce(saveNotificationsSettings));
+
+    // Date & Time
+    const closeDatetimeBtn = $('#closeDatetimeBtn');
+    if (closeDatetimeBtn) closeDatetimeBtn.addEventListener('click', closeDatetimeSheet);
+    const datetimeOverlay = $('#datetimeOverlay');
+    if (datetimeOverlay) datetimeOverlay.addEventListener('click', closeDatetimeSheet);
+    const saveDatetimeBtn = $('#saveDatetimeBtn');
+    if (saveDatetimeBtn) saveDatetimeBtn.addEventListener('click', onClickOnce(saveDatetimeSettings));
 
     // Settings
     $('#saveSettingsBtn')
@@ -1975,7 +2061,7 @@
 
             if (!from || !to) {
               toast(
-                'حدد التاريخ',
+                t('stats.need_dates'),
                 'warning'
               );
               return;
@@ -1987,7 +2073,7 @@
             );
 
             toast(
-              'تم تحديث الإحصائيات',
+              t('stats.updated'),
               'success'
             );
           }
@@ -2108,6 +2194,9 @@
     closeControlSheet,
     openNotificationsSheet,
     closeNotificationsSheet,
+    openDatetimeSheet,
+    closeDatetimeSheet,
+    saveDatetimeSettings,
     openSheetByName,
 
     // Expose these for other modules if needed

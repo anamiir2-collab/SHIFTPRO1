@@ -8,7 +8,8 @@
 
   const { $, el, fmtDate, parseDate, todayStr, formatHijri, fmtTime12,
     fmtNum, fmtCurrency, fmtHours, monthNamesAr, weekdayNamesAr,
-    toast, confirmDialog, haptic, onClickOnce, debounce, t } = SPUtils;
+    toast, confirmDialog, haptic, onClickOnce, debounce, t,
+    shiftDisplayName } = SPUtils;
   const storage = SPStorage;
 
   let unsubStore = null;
@@ -58,7 +59,9 @@
 
     // Hero card
     $('#greetingText').textContent = greeting();
-    $('#heroName').textContent = s.name || t('dashboard.default_name');
+    // الاسم الافتراضي القديم "موظف" يُعامل كغير مُدخل حتى تظهر ترجمة اللغة الحالية
+    const rawName = (s.name || '').trim();
+    $('#heroName').textContent = (rawName && rawName !== 'موظف') ? rawName : t('dashboard.default_name');
     // التاريخ الميلادي حسب اللغة الحالية
     if (window.SPi18n) {
       $('#todayGregorian').textContent = SPi18n.formatWeekday(today, { weekday: 'long' }) +
@@ -67,7 +70,13 @@
       $('#todayGregorian').textContent =
         `${weekdayNamesAr[today.getDay()]}, ${today.getDate()} ${monthNamesAr[today.getMonth()]} ${today.getFullYear()}`;
     }
-    $('#todayHijri').textContent = formatHijri(today);
+    // التاريخ الهجري — قابل للإخفاء من الإعدادات (التاريخ والوقت)
+    const hijriEl = $('#todayHijri');
+    if (hijriEl) {
+      const showHijri = s.showHijri !== false;
+      hijriEl.hidden = !showHijri;
+      if (showHijri) hijriEl.textContent = formatHijri(today);
+    }
 
     // Status pills
     const pillsContainer = $('#todayStatusPills');
@@ -75,7 +84,7 @@
     // Day type pill
     if (shift) {
       const p = el('span', { class: 'status-pill ' + shiftClass(shift) }, [
-        el('i', { class: 'dot' }), shift.name
+        el('i', { class: 'dot' }), shiftDisplayName(shift)
       ]);
       pillsContainer.appendChild(p);
     } else {
@@ -178,7 +187,8 @@
         SPReports.render();
       }
 
-      $('#workerName').textContent = storage.getSettings().name || '—';
+      const nm = (storage.getSettings().name || '').trim();
+      $('#workerName').textContent = (nm && nm !== 'موظف') ? nm : '—';
     }, 80);
   }
 
@@ -215,7 +225,7 @@
         const dateStr = `${date.getDate()} ${monthNamesAr[date.getMonth()]} ${date.getFullYear()}`;
         const dayName = weekdayNamesAr[date.getDay()];
         const shift = code ? storage.getShiftByCode(code) : null;
-        const statusLabel = entry ? (SPAttendance.statusLabels[entry.status] || '') : '';
+        const statusLabel = entry ? SPAttendance.statusLabel(entry.status) : '';
         const note = (entry && entry.note) || '';
         const location = (entry && entry.location) || '';
         const haystack = `${dstr} ${dateStr} ${dayName} ${shift ? shift.name : ''} ${statusLabel} ${note} ${location}`.toLowerCase();
@@ -226,7 +236,7 @@
 
     if (filtered.length === 0) {
       results.appendChild(el('div', { class: 'empty-state' }, [
-        el('div', { class: 't2' }, ['لا توجد نتائج'])
+        el('div', { class: 't2' }, [t('search.no_results')])
       ]));
       return;
     }
@@ -235,15 +245,18 @@
       const entry = att[dstr];
       const code = sched[dstr];
       const shift = code ? storage.getShiftByCode(code) : null;
-      const statusLabel = entry ? (SPAttendance.statusLabels[entry.status] || '') : 'غير مسجل';
+      const statusLabel = entry ? SPAttendance.statusLabel(entry.status) : t('status.unrecorded');
       const row = el('button', {
         class: 'item',
-        style: 'display:flex;width:100%;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:6px;text-align:right;cursor:pointer;font-family:inherit;color:var(--text);'
+        style: 'display:flex;width:100%;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:6px;text-align:start;cursor:pointer;font-family:inherit;color:var(--text);'
       });
       const left = el('div', { style: 'flex:1;' }, []);
-      left.appendChild(el('div', { class: 'fs-md fw-bold' }, [`${date.getDate()} ${monthNamesAr[date.getMonth()]} ${date.getFullYear()}`]));
+      left.appendChild(el('div', { class: 'fs-md fw-bold' }, [
+        SPi18n ? SPi18n.formatDate(date, { day: 'numeric', month: 'long', year: 'numeric' })
+          : `${date.getDate()} ${monthNamesAr[date.getMonth()]} ${date.getFullYear()}`
+      ]));
       left.appendChild(el('div', { class: 'fs-sm muted' }, [
-        `${weekdayNamesAr[date.getDay()]} • ${shift ? shift.name : '—'} • ${statusLabel}`
+        `${SPi18n ? SPi18n.formatWeekday(date, { weekday: 'long' }) : weekdayNamesAr[date.getDay()]} • ${shift ? shiftDisplayName(shift) : '—'} • ${statusLabel}`
       ]));
       if (entry && entry.note) {
         left.appendChild(el('div', { class: 'fs-sm text-2', style: 'margin-top:4px;' }, ['📝 ' + entry.note]));
@@ -292,10 +305,10 @@
     }
 
     if (s.notifyCheckIn) {
-      scheduleAt(s.notifyCheckInTime, 'تذكير: تسجيل الحضور', 'لا تنسَ تسجيل حضورك لهذا اليوم');
+      scheduleAt(s.notifyCheckInTime, t('notif.checkin_title'), t('notif.checkin_body'));
     }
     if (s.notifyCheckOut) {
-      scheduleAt(s.notifyCheckOutTime, 'تذكير: تسجيل الانصراف', 'لا تنسَ تسجيل انصرافك قبل المغادرة');
+      scheduleAt(s.notifyCheckOutTime, t('notif.checkout_title'), t('notif.checkout_body'));
     }
     if (s.notifyShiftEnd) {
       const today = new Date();
@@ -303,24 +316,24 @@
       const code = storage.getScheduledCode(dstr);
       const shift = code ? storage.getShiftByCode(code) : null;
       if (shift && shift.endTime) {
-        scheduleAt(shift.endTime, 'تذكير: نهاية الوردية', 'انتهت ورديتك المجدولة — سجّل انصرافك');
+        scheduleAt(shift.endTime, t('notif.shift_end_title'), t('notif.shift_end_body'));
       }
     }
   }
 
   async function requestNotificationPermission() {
     if (!('Notification' in window)) {
-      toast('الإشعارات غير مدعومة على هذا الجهاز', 'warning');
+      toast(t('notif.unsupported'), 'warning');
       return false;
     }
     if (Notification.permission === 'granted') return true;
     const result = await Notification.requestPermission();
     if (result === 'granted') {
-      toast('تم تفعيل الإشعارات', 'success');
+      toast(t('notif.enabled_toast'), 'success');
       setupNotifications();
       return true;
     } else {
-      toast('تم رفض الإذن — يمكنك تفعيله من إعدادات المتصفح', 'warning');
+      toast(t('notif.denied_toast'), 'warning');
       return false;
     }
   }
@@ -407,10 +420,7 @@ function setupInstallPrompt() {
     hideInstallBanner(false);
 
     if (!installPromptEvent) {
-      toast(
-        'افتح قائمة المتصفح واختر "إضافة للشاشة الرئيسية"',
-        'info'
-      );
+      toast(t('pwa.manual_hint'), 'info');
       return;
     }
 
@@ -423,7 +433,7 @@ function setupInstallPrompt() {
       const choice = await promptEvent.userChoice;
 
       if (choice.outcome === 'accepted') {
-        toast('جاري التثبيت...', 'success');
+        toast(t('pwa.installing'), 'success');
       }
     } catch (err) {
       console.warn('[PWA] install prompt failed', err);
@@ -463,7 +473,7 @@ function setupInstallPrompt() {
       new Date().toISOString()
     );
 
-    toast('تم تثبيت ShiftPro!', 'success');
+    toast(t('pwa.installed_toast'), 'success');
   });
 }
 
@@ -486,7 +496,8 @@ function setupInstallPrompt() {
 
   // ---------- Update worker name in topbar ----------
   function updateTopbar() {
-    $('#workerName').textContent = storage.getSettings().name || '—';
+    const nm = (storage.getSettings().name || '').trim();
+    $('#workerName').textContent = (nm && nm !== 'موظف') ? nm : '—';
   }
 
   // ---------- Handle URL params (PWA shortcuts) ----------
@@ -549,6 +560,11 @@ function setupInstallPrompt() {
     // Other pages are rendered when the user opens them, preventing a heavy
     // first-load freeze on mobile/PWA.
     safeInit('dashboard', renderDashboard);
+
+    // Live clock (Africa/Cairo) — يعمل بعد أول رسم حتى لا يؤخر الإقلاع
+    if (window.SPClock) {
+      safeInit('clock', () => SPClock.init());
+    }
 
     // Prepare secondary views after the first frame, without blocking the UI.
     const warmSecondaryViews = () => {
@@ -669,33 +685,34 @@ function setupInstallPrompt() {
       }
     });
 
-    // ====== i18n: زر تبديل اللغة + إعادة الرسم عند التبديل ======
+    // ====== i18n: إعادة الرسم عند تبديل اللغة (مستقل عن وجود زر langBtn) ======
     const langBtn = $('#langBtn');
     const langLabel = $('#langLabel');
+    const updateLangLabel = () => {
+      if (langLabel) {
+        langLabel.textContent = (window.SPi18n ? SPi18n.getLocale() : 'ar').toUpperCase();
+      }
+    };
+    updateLangLabel();
     if (langBtn) {
-      const updateLangLabel = () => {
-        if (langLabel) {
-          langLabel.textContent = (window.SPi18n ? SPi18n.getLocale() : 'ar').toUpperCase();
-        }
-      };
-      updateLangLabel();
       langBtn.addEventListener('click', onClickOnce(() => {
         if (window.SPi18n) SPi18n.toggleLocale();
         updateLangLabel();
         toast(t('msg.updated'), 'info');
       }));
-      if (window.SPi18n) {
-        SPi18n.subscribe((locale) => {
-          updateLangLabel();
-          try {
-            renderDashboard();
-            SPCalendar.renderCalendar();
-            if (typeof SPCalendar.renderLegend === 'function') SPCalendar.renderLegend();
-            SPSalary.render();
-            SPReports.render();
-          } catch (e) { console.error('[i18n] re-render error', e); }
-        });
-      }
+    }
+    if (window.SPi18n) {
+      SPi18n.subscribe((locale) => {
+        updateLangLabel();
+        try {
+          renderDashboard();
+          SPCalendar.renderCalendar();
+          if (typeof SPCalendar.renderLegend === 'function') SPCalendar.renderLegend();
+          SPSalary.render();
+          SPReports.render();
+          if (window.SPClock && typeof SPClock.render === 'function') SPClock.render();
+        } catch (e) { console.error('[i18n] re-render error', e); }
+      });
     }
 
     // ====== Privacy Mode ======

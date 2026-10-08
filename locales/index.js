@@ -70,19 +70,20 @@
   }
 
   // ---------- الدالة الأساسية t ----------
+  // قاعدة الـ fallback:
+  // 1) القاموس الحالي أولًا.
+  // 2) في الوضع العربي فقط: fallback للإنجليزية لو المفتاح ناقص.
+  // 3) في الوضع الإنجليزي: يُمنع منعًا باتًا عرض العربية —
+  //    نرجّع المفتاح نفسه (تشخيص) بدل أي نص عربي.
+  // وحدة القاموسين مضمونة عبر scripts/check-i18n.js (تطابق 1:1).
   function t(key, vars) {
     if (!currentDict) currentDict = loadDict(currentLocale);
     let val = currentDict[key];
-    // fallback للإنجليزي لو المفتاح مش موجود في القاموس الحالي
     if (val == null && currentLocale !== 'en' && global.SPi18n_en) {
       val = global.SPi18n_en[key];
     }
-    // fallback للعربي لو لسه مش موجود
-    if (val == null && currentLocale !== 'ar' && global.SPi18n_ar) {
-      val = global.SPi18n_ar[key];
-    }
     if (val == null) {
-      // رجّع المفتاح نفسه ك fallback أخير (للتشخيص)
+      // لا نعرض العربية أبدًا في الوضع الإنجليزي — نرجّع المفتاح للتشخيص
       return key;
     }
     return interpolate(val, vars);
@@ -233,6 +234,13 @@
   // ---------- Hijri formatting حسب اللغة ----------
   let _hijriFmt = null;
   let _hijriLocale = null;
+  // Intl بيرجّع اللاحقة أصلًا ("هـ" في العربية و "AH" في الإنجليزية)
+  // فنتأكد من عدم تكرارها
+  function dedupeHijriSuffix(formatted, suffix) {
+    if (!suffix) return formatted;
+    if (formatted.indexOf(suffix.trim()) >= 0) return formatted;
+    return formatted + suffix;
+  }
   function formatHijri(date) {
     try {
       const loc = bcp47() === 'en-US' ? 'en-US-u-ca-islamic-umalqura' : 'ar-SA-u-ca-islamic-umalqura';
@@ -245,7 +253,7 @@
         _hijriLocale = loc;
       }
       const suffix = currentLocale === 'ar' ? ' هـ' : ' AH';
-      return _hijriFmt.format(date) + suffix;
+      return dedupeHijriSuffix(_hijriFmt.format(date), suffix);
     } catch (e) {
       return '';
     }

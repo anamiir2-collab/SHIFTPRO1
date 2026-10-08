@@ -145,9 +145,7 @@
         if (Date.now() - last > 3600000) { // 1 ساعة
           saveSettings({ lastShown: { [key]: Date.now() } });
           const title = t('attendance.checkout_now');
-          const body = (window.SPi18n && SPi18n.getLocale() === 'ar')
-            ? `مسجل حضور من ${SPUtils.fmtTime12(entry.from)} ولم تُسجّل الانصراف بعد`
-            : `Checked in at ${SPUtils.fmtTime12(entry.from)} but not checked out yet`;
+          const body = t('notif.forgot_body', { time: SPUtils.fmtTime12(entry.from) });
           show(title, body, { tag: 'forgot_checkout', requireInteraction: true });
         }
       }
@@ -177,9 +175,11 @@
       if (Date.now() - last > 600000) { // 10 دقايق
         saveSettings({ lastShown: { [key]: Date.now() } });
         const title = t('attendance.checkin_now') + ' — ' + shift.name;
-        const body = (window.SPi18n && SPi18n.getLocale() === 'ar')
-          ? `وردية ${shift.name} بتبدأ بعد ${diffMin} دقيقة (${SPUtils.fmtTime12(shiftStart)})`
-          : `${shift.name} shift starts in ${diffMin} min (${SPUtils.fmtTime12(shiftStart)})`;
+        const body = t('notif.shift_soon_body', {
+          shift: shift.name,
+          min: diffMin,
+          time: SPUtils.fmtTime12(shiftStart)
+        });
         show(title, body, { tag: 'shift_reminder_' + dstr });
       }
     }
@@ -210,13 +210,63 @@
       const value = (global.SPAttendance && SPAttendance.dayValue)
         ? SPAttendance.dayValue(now, entry) : 0;
 
-      const title = (window.SPi18n && SPi18n.getLocale() === 'ar')
-        ? 'ملخص اليوم'
-        : 'Daily summary';
-      const body = (window.SPi18n && SPi18n.getLocale() === 'ar')
-        ? `سجلت ${SPUtils.fmtHours(hours)}، إضافي ${SPUtils.fmtHours(overtime)}، متوقع ${SPUtils.fmtCurrency(value)}`
-        : `Worked ${SPUtils.fmtHours(hours)}, overtime ${SPUtils.fmtHours(overtime)}, expected ${SPUtils.fmtCurrency(value)}`;
+      const title = t('notif.daily_title');
+      const body = t('notif.daily_body', {
+        hours: SPUtils.fmtHours(hours),
+        overtime: SPUtils.fmtHours(overtime),
+        value: SPUtils.fmtCurrency(value)
+      });
       show(title, body, { tag: 'daily_summary_' + dstr });
+    }
+  }
+
+  // ---------- تنبيه: إجازة رسمية اليوم (opt-in) ----------
+  // يعمل مرة واحدة يوميًا فقط، وبتوقيت الصباح، وبعد تفعيل
+  // "تذكير بالإجازات الرسمية" من الإعدادات (التاريخ والوقت).
+  function checkHolidayReminder() {
+    const s = getSettings();
+    if (!s.enabled) return;
+    if (!global.SPStorage || !global.SPUtils) return;
+
+    // الإعداد الأساسي في SPStorage — opt-in افتراضيًا
+    let holidayReminder = false;
+    try {
+      holidayReminder = !!SPStorage.getSettings().holidayReminder;
+    } catch (e) {}
+    if (!holidayReminder) return;
+
+    if (
+      !global.SPOfficialHolidays ||
+      typeof global.SPOfficialHolidays.getOfficialHoliday !== 'function'
+    ) {
+      return;
+    }
+
+    const today = new Date();
+    const dstr = SPUtils.fmtDate(today);
+
+    let holiday = null;
+    try {
+      // احترم خيار الإظهار أيضًا
+      const main = SPStorage.getSettings();
+      if (main.showHolidays === false) return;
+      holiday = SPOfficialHolidays.getOfficialHoliday(dstr);
+    } catch (e) {}
+    if (!holiday) return;
+
+    const key = 'holiday_reminder_' + dstr;
+    const last = s.lastShown[key] || 0;
+    if (Date.now() - last > 86400000) {
+      saveSettings({ lastShown: { [key]: Date.now() } });
+
+      let name = holiday.name || '';
+      if (typeof SPOfficialHolidays.getHolidayLocalizedName === 'function') {
+        name = SPOfficialHolidays.getHolidayLocalizedName(holiday);
+      }
+
+      const title = t('holiday.reminder_title');
+      const body = t('holiday.reminder_body', { name: name });
+      show(title, body, { tag: 'holiday_reminder_' + dstr });
     }
   }
 
@@ -230,6 +280,7 @@
         checkForgotCheckout();
         checkShiftReminder();
         checkDailySummary();
+        checkHolidayReminder();
       } catch (e) {
         console.error('[Notif] tick error', e);
       }
@@ -239,6 +290,7 @@
       try {
         checkForgotCheckout();
         checkDailySummary();
+        checkHolidayReminder();
       } catch (e) {}
     }, 3000);
   }
@@ -276,6 +328,7 @@
     try {
       checkForgotCheckout();
       checkDailySummary();
+      checkHolidayReminder();
     } catch (e) {}
   }
 
@@ -290,6 +343,7 @@
     checkForgotCheckout,
     checkShiftReminder,
     checkDailySummary,
+    checkHolidayReminder,
     checkMissedOnOpen,
     start,
     stop,

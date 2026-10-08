@@ -8,10 +8,10 @@
 
   // قوالب افتراضية (بتستخدم shifts اللي محفوظة بالفعل)
   const DEFAULT_TEMPLATES = [
-    { id: 'tpl-morning',   name: 'صباحي',    nameKey: 'calendar.weekday_sun', shiftCode: 'D', color: '#60a5fa' },
-    { id: 'tpl-evening',   name: 'مسائي',    nameKey: 'dashboard.greeting_evening', shiftCode: 'D', color: '#fbbf24' },
-    { id: 'tpl-night',     name: 'ليلي',     nameKey: 'dashboard.stats_present', shiftCode: 'N', color: '#2563eb' },
-    { id: 'tpl-overtime',  name: 'أوفرتايم', nameKey: 'dashboard.overtime', shiftCode: 'X', color: '#a855f7' }
+    { id: 'tpl-morning',   name: 'صباحي',    nameKey: 'tpl.morning', shiftCode: 'D', color: '#60a5fa' },
+    { id: 'tpl-evening',   name: 'مسائي',    nameKey: 'tpl.evening', shiftCode: 'D', color: '#fbbf24' },
+    { id: 'tpl-night',     name: 'ليلي',     nameKey: 'tpl.night', shiftCode: 'N', color: '#2563eb' },
+    { id: 'tpl-overtime',  name: 'أوفرتايم', nameKey: 'tpl.overtime', shiftCode: 'X', color: '#a855f7' }
   ];
 
   const TPL_KEY = 'shifpro_templates_v2';

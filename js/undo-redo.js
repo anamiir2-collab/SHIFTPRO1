@@ -105,7 +105,7 @@
   function redo() {
     const redoStack = safeRead(REDO_KEY, []);
     if (redoStack.length === 0) {
-      if (global.SPUtils && SPUtils.toast) SPUtils.toast('لا يمكن الإعادة', 'info');
+      if (global.SPUtils && SPUtils.toast) SPUtils.toast(t('msg.cannot_redo'), 'info');
       return false;
     }
     // snapshot الحالة الحالية (للـ undo)
