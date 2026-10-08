@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0">
   <meta name="description" content="ShiftPro - تطبيق متكامل لإدارة الورديات والحضور وساعات العمل والرواتب. يعمل بدون إنترنت.">
-  <meta name="theme-color" content="#f2f2f7" id="metaTheme">
+  <meta name="theme-color" content="#1E2A44" id="metaTheme">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -13,13 +13,19 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="favicon-32.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="stylesheet" href="css/style.css?v=2.2.0">
-  <link rel="stylesheet" href="css/animations.css?v=2.2.0">
-  <link rel="stylesheet" href="css/ios-style.css?v=2.2.0">
+  <link rel="stylesheet" href="css/style.css?v=2.3.0">
+  <link rel="stylesheet" href="css/animations.css?v=2.3.0">
+  <link rel="stylesheet" href="css/ios-style.css?v=2.3.0">
+  <!-- Arabic-first typography: Cairo (Arabic) + IBM Plex Sans Arabic as fallback.
+       We preconnect to Google Fonts only if the network is available; the font
+       stack in CSS falls back to system fonts gracefully when offline. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
   <!-- i18n: العربية + الإنجليزية (يتحمّل قبل أي موديول آخر) -->
-  <script src="locales/ar.js?v=2.2.0"></script>
-  <script src="locales/en.js?v=2.2.0"></script>
-  <script src="locales/index.js?v=2.2.0"></script>
+  <script src="locales/ar.js?v=2.3.0"></script>
+  <script src="locales/en.js?v=2.3.0"></script>
+  <script src="locales/index.js?v=2.3.0"></script>
 </head>
 <body>
 
@@ -64,24 +70,35 @@
 
 <!-- ============ PAGE: DASHBOARD ============ -->
 <section class="page active" id="page-dashboard" data-tab="dashboard">
-  <div class="hero-card" id="heroCard">
-    <p class="greeting" id="greetingText" data-i18n="dashboard.greeting_morning">صباح الخير</p>
-    <h2 class="name" id="heroName">—</h2>
+
+  <!-- Personalized welcome + compact date/time card -->
+  <div class="welcome-card" id="heroCard">
+    <div class="welcome-head">
+      <div class="welcome-text">
+        <p class="welcome-greet" id="greetingText">صباح الخير</p>
+        <h2 class="welcome-name" id="heroName">—</h2>
+        <p class="welcome-sub" id="welcomeSubText">—</p>
+      </div>
+      <div class="welcome-avatar" aria-hidden="true">
+        <span class="welcome-avatar-initial" id="welcomeAvatarInitial">—</span>
+      </div>
+    </div>
+
     <div class="row gap-2 wrap" id="todayStatusPills">
       <!-- Filled by JS -->
     </div>
-    <div class="date-row">
-      <span id="todayGregorian">—</span>
-      <span class="hijri" id="todayHijri">—</span>
-    </div>
-  </div>
 
-  <!-- Live clock card (Africa/Cairo) — controlled by Settings > Date & Time -->
-  <div class="card clock-card" id="liveClockCard" role="timer" aria-label="الساعة الحية — توقيت القاهرة">
-    <span class="clock-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
-    <div class="clock-body">
-      <div class="clock-time" id="liveClockTime">--:--</div>
-      <div class="clock-label" id="liveClockLabel" data-i18n="clock.timezone_label">توقيت القاهرة</div>
+    <!-- Compact date + live clock, merged into the welcome card -->
+    <div class="clock-date-row" id="liveClockCard" role="timer">
+      <div class="clock-date-block">
+        <div class="clock-time" id="liveClockTime">--:--</div>
+        <div class="clock-label" id="liveClockLabel" data-i18n="clock.timezone_label">توقيت القاهرة</div>
+      </div>
+      <div class="clock-divider" aria-hidden="true"></div>
+      <div class="clock-date-block dates">
+        <span class="clock-greg" id="todayGregorian">—</span>
+        <span class="hijri clock-hijri" id="todayHijri">—</span>
+      </div>
     </div>
   </div>
 
@@ -390,6 +407,7 @@
     class="tab-btn active"
     data-tab="dashboard"
     aria-label="الرئيسية"
+    data-i18n-aria="nav.dashboard"
     >
     <span class="ic">
       <img
@@ -398,13 +416,14 @@
         aria-hidden="true"
         >
     </span>
-    <span class="tab-label">الرئيسية</span>
-    
+    <span class="tab-label" data-i18n="nav.dashboard">الرئيسية</span>
+
   </button>
   <button
     class="tab-btn"
     data-tab="calendar"
     aria-label="التقويم"
+    data-i18n-aria="nav.calendar"
     >
     <span class="ic">
       <img
@@ -413,12 +432,13 @@
         aria-hidden="true"
         >
     </span>
-    <span class="tab-label">التقويم</span>
+    <span class="tab-label" data-i18n="nav.calendar">التقويم</span>
   </button>
   <button
     class="tab-btn"
     data-tab="salary"
     aria-label="الراتب"
+    data-i18n-aria="nav.salary"
     >
     <span class="ic">
       <img
@@ -427,36 +447,37 @@
         aria-hidden="true"
         >
     </span>
-    <span class="tab-label">الراتب</span>
+    <span class="tab-label" data-i18n="nav.salary">الراتب</span>
   </button>
   <button
     class="tab-btn"
     data-tab="reports"
     aria-label="التقارير"
+    data-i18n-aria="nav.reports"
     >
     <span class="ic">
-      <img 
+      <img
         src="assets/report.svg"
         alt=""
         aria-hidden="true"
         >
     </span>
-    <span class="tab-label">التقارير</span>
+    <span class="tab-label" data-i18n="nav.reports">التقارير</span>
   </button>
   <button
     class="tab-btn"
     data-tab="more"
     aria-label="الإعدادات"
+    data-i18n-aria="nav.settings"
     >
     <span class="ic">
-      <svg 
-        <img 
+      <img
         src="assets/application.svg"
         alt=""
         aria-hidden="true"
         >
     </span>
-    <span class="tab-label">الإعدادات</span>
+    <span class="tab-label" data-i18n="nav.settings">الإعدادات</span>
   </button>
 </nav>
 
@@ -595,56 +616,138 @@
   <h3 data-i18n="settings.title">الإعدادات</h3>
   <p class="sub" data-i18n="settings.subtitle">بيانات الموظف والراتب ودورة الصرف وإعدادات الحساب</p>
 
-  <p class="card-title" data-i18n="settings.employee">بيانات الموظف</p>
-  <div class="field"><label data-i18n="settings.name_label">الاسم</label><input type="text" id="inpName" data-i18n-placeholder="settings.name_ph" placeholder="اكتب الاسم"></div>
-  <div class="field-row">
-    <div class="field"><label data-i18n="settings.job_label">الوظيفة</label><input type="text" id="inpJob" data-i18n-placeholder="settings.job_ph" placeholder="مثال: أمين مخزن"></div>
-    <div class="field"><label data-i18n="settings.employee_id_label">رقم الموظف</label><input type="text" id="inpEmployeeId" data-i18n-placeholder="settings.employee_id_ph" placeholder="اختياري"></div>
+  <!-- ============ A. Personal Information ============ -->
+  <div class="settings-section">
+    <div class="settings-section-head">
+      <span class="settings-section-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-7 8-7s8 3 8 7"></path></svg>
+      </span>
+      <div>
+        <p class="settings-section-title" data-i18n="settings.section_personal_info">أ. المعلومات الشخصية</p>
+        <p class="settings-section-sub" data-i18n="settings.section_personal_info_sub">الاسم والوظيفة ورقم الموظف والشركة</p>
+      </div>
+    </div>
+    <div class="field"><label data-i18n="settings.name_label">الاسم</label><input type="text" id="inpName" data-i18n-placeholder="settings.name_ph" placeholder="اكتب الاسم" autocomplete="name"></div>
+    <div class="field-row">
+      <div class="field"><label data-i18n="settings.job_label">الوظيفة</label><input type="text" id="inpJob" data-i18n-placeholder="settings.job_ph" placeholder="مثال: أمين مخزن"></div>
+      <div class="field"><label data-i18n="settings.employee_id_label">رقم الموظف</label><input type="text" id="inpEmployeeId" data-i18n-placeholder="settings.employee_id_ph" placeholder="اختياري"></div>
+    </div>
+    <div class="field"><label data-i18n="settings.company_label">الشركة</label><input type="text" id="inpCompany" data-i18n-placeholder="settings.company_ph" placeholder="اسم الشركة"></div>
   </div>
-  <div class="field"><label data-i18n="settings.company_label">الشركة</label><input type="text" id="inpCompany" data-i18n-placeholder="settings.company_ph" placeholder="اسم الشركة"></div>
 
-  <div class="sheet-divider"></div>
-  <p class="card-title" data-i18n="salary.title">الراتب</p>
-  <div class="field">
-    <label data-i18n="settings.method_monthly">طريقة حساب الراتب</label>
-    <select id="inpSalaryMethod">
-      <option value="monthly" data-i18n="settings.method_monthly">راتب شهري ثابت</option>
-      <option value="hourly" data-i18n="settings.method_hourly">أجر بالساعة</option>
-      <option value="daily" data-i18n="settings.method_daily">أجر باليوم</option>
-      <option value="shift" data-i18n="settings.method_shift">أجر بالوردية</option>
-    </select>
+  <!-- ============ B. Salary & Compensation ============ -->
+  <div class="settings-section">
+    <div class="settings-section-head">
+      <span class="settings-section-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+      </span>
+      <div>
+        <p class="settings-section-title" data-i18n="settings.section_salary_comp">ب. الراتب والتعويض</p>
+        <p class="settings-section-sub" data-i18n="settings.section_salary_comp_sub">طريقة الحساب والراتب والساعات والمعاملات</p>
+      </div>
+    </div>
+    <div class="field">
+      <label data-i18n="settings.method_monthly">طريقة حساب الراتب</label>
+      <select id="inpSalaryMethod">
+        <option value="monthly" data-i18n="settings.method_monthly">راتب شهري ثابت</option>
+        <option value="hourly" data-i18n="settings.method_hourly">أجر بالساعة</option>
+        <option value="daily" data-i18n="settings.method_daily">أجر باليوم</option>
+        <option value="shift" data-i18n="settings.method_shift">أجر بالوردية</option>
+      </select>
+    </div>
+    <div class="field"><label data-i18n="settings.monthly_salary_label">الراتب الشهري الأساسي (جنيه)</label><input type="number" id="inpSalary" placeholder="6000" inputmode="numeric"></div>
+    <div class="field-row">
+      <div class="field"><label data-i18n="settings.monthly_hours_label">ساعات العمل الشهرية</label><input type="number" id="inpMonthlyHours" placeholder="208" inputmode="numeric"></div>
+      <div class="field"><label data-i18n="settings.shift_hours_label">ساعات الوردية</label><input type="number" id="inpShiftHours" placeholder="12" inputmode="numeric"></div>
+    </div>
+    <div class="field"><label data-i18n="settings.manual_rate">سعر الساعة اليدوي (0 = حساب تلقائي)</label><input type="number" id="inpHourlyRate" placeholder="0" inputmode="numeric"></div>
   </div>
-  <div class="field"><label data-i18n="settings.monthly_salary_label">الراتب الشهري الأساسي (جنيه)</label><input type="number" id="inpSalary" placeholder="6000"></div>
-  <div class="field-row">
-    <div class="field"><label data-i18n="settings.monthly_hours_label">ساعات العمل الشهرية</label><input type="number" id="inpMonthlyHours" placeholder="208"></div>
-    <div class="field"><label data-i18n="settings.shift_hours_label">ساعات الوردية</label><input type="number" id="inpShiftHours" placeholder="12"></div>
-  </div>
-  <div class="field"><label data-i18n="settings.manual_rate">سعر الساعة اليدوي (0 = حساب تلقائي)</label><input type="number" id="inpHourlyRate" placeholder="0"></div>
 
-  <div class="sheet-divider"></div>
-  <p class="card-title" data-i18n="settings.overtime_title">الساعات الإضافية</p>
-  <div class="setting-row">
-    <div class="meta"><div class="t1" data-i18n="settings.overtime_enable">تفعيل حساب الإضافي</div><div class="t2" data-i18n="settings.overtime_enable_sub">حساب ساعات ما بعد المطلوب</div></div>
-    <label class="switch"><input type="checkbox" id="inpOvertimeEnabled" checked><span class="slider"></span></label>
+  <!-- B.2 Overtime -->
+  <div class="settings-section">
+    <div class="settings-section-head">
+      <span class="settings-section-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+      </span>
+      <div><p class="settings-section-title" data-i18n="settings.overtime_title">الساعات الإضافية</p></div>
+    </div>
+    <div class="setting-row">
+      <div class="meta"><div class="t1" data-i18n="settings.overtime_enable">تفعيل حساب الإضافي</div><div class="t2" data-i18n="settings.overtime_enable_sub">حساب ساعات ما بعد المطلوب</div></div>
+      <label class="switch"><input type="checkbox" id="inpOvertimeEnabled" checked><span class="slider"></span></label>
+    </div>
+    <div class="field"><label data-i18n="settings.overtime_multiplier">معامل الإضافي (مثال: 1.5)</label><input type="number" id="inpOvertimeRate" step="0.1" value="1.5" placeholder="1.5" inputmode="decimal"></div>
+    <div class="field"><label data-i18n="settings.overtime_threshold">عتبة الإضافي (0 = بعد ساعات الوردية)</label><input type="number" id="inpOvertimeAfterHours" placeholder="0" inputmode="numeric"></div>
   </div>
-  <div class="field"><label data-i18n="settings.overtime_multiplier">معامل الإضافي (مثال: 1.5)</label><input type="number" id="inpOvertimeRate" step="0.1" value="1.5" placeholder="1.5"></div>
-  <div class="field"><label data-i18n="settings.overtime_threshold">عتبة الإضافي (0 = بعد ساعات الوردية)</label><input type="number" id="inpOvertimeAfterHours" placeholder="0"></div>
 
-  <div class="sheet-divider"></div>
-  <p class="card-title" data-i18n="settings.deductions_title">الخصومات</p>
-  <div class="setting-row">
-    <div class="meta"><div class="t1" data-i18n="settings.deduct_absence">خصم الغياب</div><div class="t2" data-i18n="settings.deduct_absence_sub">خصم قيمة اليوم عن كل يوم غياب</div></div>
-    <label class="switch"><input type="checkbox" id="inpDeductAbsence" checked><span class="slider"></span></label>
+  <!-- B.3 Deductions -->
+  <div class="settings-section">
+    <div class="settings-section-head">
+      <span class="settings-section-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M10 11v6M14 11v6"></path></svg>
+      </span>
+      <div><p class="settings-section-title" data-i18n="settings.deductions_title">الخصومات</p></div>
+    </div>
+    <div class="setting-row">
+      <div class="meta"><div class="t1" data-i18n="settings.deduct_absence">خصم الغياب</div><div class="t2" data-i18n="settings.deduct_absence_sub">خصم قيمة اليوم عن كل يوم غياب</div></div>
+      <label class="switch"><input type="checkbox" id="inpDeductAbsence" checked><span class="slider"></span></label>
+    </div>
+    <div class="setting-row">
+      <div class="meta"><div class="t1" data-i18n="settings.deduct_late">خصم التأخير</div><div class="t2" data-i18n="settings.deduct_late_sub">خصم قيمة التأخير عن وقت البداية</div></div>
+      <label class="switch"><input type="checkbox" id="inpDeductLate"><span class="slider"></span></label>
+    </div>
+    <div class="field"><label data-i18n="settings.late_grace">سماح التأخير (دقائق)</label><input type="number" id="inpLateGrace" placeholder="0" value="0" inputmode="numeric"></div>
   </div>
-  <div class="setting-row">
-    <div class="meta"><div class="t1" data-i18n="settings.deduct_late">خصم التأخير</div><div class="t2" data-i18n="settings.deduct_late_sub">خصم قيمة التأخير عن وقت البداية</div></div>
-    <label class="switch"><input type="checkbox" id="inpDeductLate"><span class="slider"></span></label>
-  </div>
-  <div class="field"><label data-i18n="settings.late_grace">سماح التأخير (دقائق)</label><input type="number" id="inpLateGrace" placeholder="0" value="0"></div>
 
-  <div class="sheet-divider"></div>
-  <p class="card-title" data-i18n="settings.cycle_title">دورة صرف الراتب</p>
-  <div class="field"><label data-i18n="settings.cycle_day_label">يوم بداية الدورة (1-28)</label><input type="number" id="inpCycleDay" min="1" max="28" placeholder="26"></div>
+  <!-- ============ C. Shifts & Attendance ============ -->
+  <div class="settings-section">
+    <div class="settings-section-head">
+      <span class="settings-section-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M8 2v4M16 2v4M3 10h18"></path></svg>
+      </span>
+      <div>
+        <p class="settings-section-title" data-i18n="settings.section_shifts_attendance">ج. الورديات والحضور</p>
+        <p class="settings-section-sub" data-i18n="settings.section_shifts_attendance_sub">إدارة الورديات ودورة الصرف</p>
+      </div>
+    </div>
+    <div class="field"><label data-i18n="settings.cycle_day_label">يوم بداية الدورة (1-28)</label><input type="number" id="inpCycleDay" min="1" max="28" placeholder="26" inputmode="numeric"></div>
+    <button class="btn ghost block sm" id="settingsOpenShiftsBtn" type="button">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+      <span data-i18n="more.shifts">إدارة الورديات</span>
+    </button>
+  </div>
+
+  <!-- ============ More Settings (D-G shortcuts) ============ -->
+  <div class="settings-section">
+    <div class="settings-section-head">
+      <span class="settings-section-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"></circle><circle cx="12" cy="12" r="1.5"></circle><circle cx="19" cy="12" r="1.5"></circle></svg>
+      </span>
+      <div>
+        <p class="settings-section-title" data-i18n="settings.section_more_settings">المزيد من الإعدادات</p>
+        <p class="settings-section-sub" data-i18n="settings.section_more_settings_sub">التاريخ والإشعارات والمظهر والنسخ الاحتياطي</p>
+      </div>
+    </div>
+    <button class="ios-setting-row" data-sheet="datetime" type="button">
+      <span class="ios-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+      <span class="ios-row-text"><strong data-i18n="settings.link_datetime">التاريخ والوقت والإجازات</strong></span>
+      <span class="ios-row-value"><span data-i18n="settings.open">فتح</span></span>
+    </button>
+    <button class="ios-setting-row" data-sheet="notifications" type="button">
+      <span class="ios-row-icon"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg></span>
+      <span class="ios-row-text"><strong data-i18n="settings.link_notifications">التذكيرات والإشعارات</strong></span>
+      <span class="ios-row-value"><span data-i18n="settings.open">فتح</span></span>
+    </button>
+    <button class="ios-setting-row" data-sheet="control" type="button">
+      <span class="ios-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.7a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.5c-.1.4-.1.8-.1 1.2s0 .8.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.7a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"></path></svg></span>
+      <span class="ios-row-text"><strong data-i18n="settings.link_control">اللغة والمظهر والتراجع</strong></span>
+      <span class="ios-row-value"><span data-i18n="settings.open">فتح</span></span>
+    </button>
+    <button class="ios-setting-row" data-sheet="backup" type="button">
+      <span class="ios-row-icon"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"></path></svg></span>
+      <span class="ios-row-text"><strong data-i18n="settings.link_backup">النسخ الاحتياطي والاستعادة</strong></span>
+      <span class="ios-row-value"><span data-i18n="settings.open">فتح</span></span>
+    </button>
+  </div>
 
   <div class="sheet-divider"></div>
   <button class="btn primary block lg" id="saveSettingsBtn" data-i18n="settings.save_btn">حفظ الإعدادات</button>
@@ -969,26 +1072,26 @@
 </div>
 
 <!-- ============ SCRIPTS ============ -->
-<script src="js/utils.js?v=2.2.0"></script>
-<script src="js/storage.js?v=2.2.0"></script>
-<script src="js/clock.js?v=2.2.0"></script>
-<script src="js/official-holidays.js?v=2.2.0"></script>
-<script src="js/leaves.js?v=2.2.0"></script>
-<script src="js/shift-templates.js?v=2.2.0"></script>
-<script src="js/undo-redo.js?v=2.2.0"></script>
-<script src="js/smart-notifications.js?v=2.2.0"></script>
-<script src="js/pdf-export.js?v=2.2.0"></script>
-<script src="js/charts.js?v=2.2.0"></script>
-<script src="js/backup.js?v=2.2.0"></script>
-<script src="js/app-lock.js?v=2.2.0"></script>
-<script src="js/storage-hybrid.js?v=2.2.0"></script>
-<script src="js/ux-enhancements.js?v=2.2.0"></script>
-<script src="js/ical-export.js?v=2.2.0"></script>
-<script src="js/calendar.js?v=2.2.0"></script>
-<script src="js/attendance.js?v=2.2.0"></script>
-<script src="js/salary.js?v=2.2.0"></script>
-<script src="js/reports.js?v=2.2.0"></script>
-<script src="js/settings.js?v=2.2.0"></script>
-<script src="js/app.js?v=2.2.0"></script>
+<script src="js/utils.js?v=2.3.0"></script>
+<script src="js/storage.js?v=2.3.0"></script>
+<script src="js/clock.js?v=2.3.0"></script>
+<script src="js/official-holidays.js?v=2.3.0"></script>
+<script src="js/leaves.js?v=2.3.0"></script>
+<script src="js/shift-templates.js?v=2.3.0"></script>
+<script src="js/undo-redo.js?v=2.3.0"></script>
+<script src="js/smart-notifications.js?v=2.3.0"></script>
+<script src="js/pdf-export.js?v=2.3.0"></script>
+<script src="js/charts.js?v=2.3.0"></script>
+<script src="js/backup.js?v=2.3.0"></script>
+<script src="js/app-lock.js?v=2.3.0"></script>
+<script src="js/storage-hybrid.js?v=2.3.0"></script>
+<script src="js/ux-enhancements.js?v=2.3.0"></script>
+<script src="js/ical-export.js?v=2.3.0"></script>
+<script src="js/calendar.js?v=2.3.0"></script>
+<script src="js/attendance.js?v=2.3.0"></script>
+<script src="js/salary.js?v=2.3.0"></script>
+<script src="js/reports.js?v=2.3.0"></script>
+<script src="js/settings.js?v=2.3.0"></script>
+<script src="js/app.js?v=2.3.0"></script>
 </body>
 </html>
