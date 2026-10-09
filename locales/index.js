@@ -241,19 +241,48 @@
     if (formatted.indexOf(suffix.trim()) >= 0) return formatted;
     return formatted + suffix;
   }
+  const hijriMonths = {
+    ar: [
+      'محرم', 'صفر', 'ربيع الأول', 'ربيع الآخر',
+      'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان',
+      'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة'
+    ],
+    en: [
+      'Muharram', 'Safar', "Rabi' al-Awwal", "Rabi' al-Thani",
+      'Jumada al-Awwal', 'Jumada al-Thani', 'Rajab', "Sha'ban",
+      'Ramadan', 'Shawwal', "Dhu al-Qi'dah", 'Dhu al-Hijjah'
+    ]
+  };
+  const hijriMonthNumberFmt = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura-nu-latn', {
+    month: 'numeric'
+  });
   function formatHijri(date) {
     try {
-      const loc = bcp47() === 'en-US' ? 'en-US-u-ca-islamic-umalqura' : 'ar-SA-u-ca-islamic-umalqura';
+      const loc = currentLocale === 'en'
+        ? 'en-US-u-ca-islamic-umalqura'
+        : 'ar-SA-u-ca-islamic-umalqura';
       if (_hijriFmt == null || _hijriLocale !== loc) {
         try {
-          _hijriFmt = new Intl.DateTimeFormat(loc, { day: 'numeric', month: 'long', year: 'numeric' });
+          _hijriFmt = new Intl.DateTimeFormat(loc, {
+            day: 'numeric', month: 'numeric', year: 'numeric'
+          });
         } catch (e) {
-          _hijriFmt = new Intl.DateTimeFormat(loc.replace('-umalqura', ''), { day: 'numeric', month: 'long', year: 'numeric' });
+          _hijriFmt = new Intl.DateTimeFormat(loc.replace('-umalqura', ''), {
+            day: 'numeric', month: 'numeric', year: 'numeric'
+          });
         }
         _hijriLocale = loc;
       }
+
+      const monthNumber = Number(hijriMonthNumberFmt.format(date));
+      const monthName = hijriMonths[currentLocale === 'en' ? 'en' : 'ar'][monthNumber - 1];
+      const parts = _hijriFmt.formatToParts(date).map(part => {
+        if (part.type === 'month' && monthName) return monthName;
+        return part.value;
+      });
+      const formatted = parts.join('');
       const suffix = currentLocale === 'ar' ? ' هـ' : ' AH';
-      return dedupeHijriSuffix(_hijriFmt.format(date), suffix);
+      return dedupeHijriSuffix(formatted, suffix);
     } catch (e) {
       return '';
     }
