@@ -4531,3 +4531,68 @@ button.ios-setting-row .ios-row-value {
 @media (prefers-reduced-motion: reduce) {
   .daily-welcome-message { animation: none !important; }
 }
+
+
+/* Live attendance elapsed time and remaining shift countdown */
+.shift-countdown-card {
+  margin-bottom: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent, #0b8063) 24%, var(--border, #dce5e2));
+  background: linear-gradient(135deg, var(--panel, #fff), color-mix(in srgb, var(--accent, #0b8063) 6%, var(--panel, #fff)));
+}
+.shift-countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.shift-countdown-metric {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--panel-2, rgba(120, 140, 135, .08));
+}
+.shift-countdown-metric > span {
+  color: var(--muted, #718079);
+  font-size: .8rem;
+}
+.shift-countdown-metric strong {
+  font-size: clamp(1.05rem, 4.5vw, 1.45rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+  direction: ltr;
+  text-align: start;
+  white-space: nowrap;
+}
+.shift-countdown-metric.remaining strong {
+  color: var(--accent, #0b8063);
+}
+.shift-countdown-progress {
+  height: 8px;
+  margin-top: 13px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--panel-3, rgba(120, 140, 135, .16));
+}
+.shift-countdown-progress > span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent, #0b8063), #42b883);
+  transition: width .5s ease;
+}
+.shift-countdown-status {
+  margin: 9px 0 0;
+  color: var(--muted, #718079);
+  font-size: .84rem;
+  font-weight: 700;
+}
+@media (max-width: 360px) {
+  .shift-countdown-grid { gap: 7px; }
+  .shift-countdown-metric { padding: 10px 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shift-countdown-progress > span { transition: none; }
+}
