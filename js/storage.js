@@ -254,7 +254,28 @@
   }
   function getEntry(dstr) {
     const att = getAttendance();
-    const v = att[dstr];
+
+    // Exact ISO key is preferred.
+    let v = att[dstr];
+
+    // Compatibility with older backups that used DD/MM/YYYY or DD-MM-YYYY.
+    // Read legacy keys without rewriting or deleting the user's stored data.
+    if (!v && /^\d{4}-\d{2}-\d{2}$/.test(String(dstr))) {
+      const [year, month, day] = String(dstr).split('-');
+      const legacyKeys = [
+        day + '/' + month + '/' + year,
+        day + '-' + month + '-' + year,
+        month + '/' + day + '/' + year,
+        month + '-' + day + '-' + year
+      ];
+      for (const key of legacyKeys) {
+        if (Object.prototype.hasOwnProperty.call(att, key)) {
+          v = att[key];
+          break;
+        }
+      }
+    }
+
     if (!v) return null;
     if (typeof v === 'string') return { status: v }; // legacy
     return v;
