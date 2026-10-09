@@ -61,6 +61,7 @@
 
     // ====== لوحة التحكم ======
     'dashboard.welcome_ar': 'أهلًا بك في ShiftPro',
+    'dashboard.welcome_en': 'Welcome to ShiftPro',
     'dashboard.greeting_morning': 'صباح الخير',
     'dashboard.greeting_noon': 'نهارك سعيد',
     'dashboard.greeting_evening': 'مساء الخير',
