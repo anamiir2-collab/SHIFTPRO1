@@ -884,10 +884,10 @@
       rate: fmtNum(result.overtimeRate, 2)
     });
 
-    const holidayRow = document.getElementById('pOfficialHolidayValueRow');
+    const officialHolidayValueRow = document.getElementById('pOfficialHolidayValueRow');
     const holidayFormulaRow = document.getElementById('pOfficialHolidayFormulaRow');
     const showHolidayPay = result.officialHolidayValue > 0;
-    if (holidayRow) holidayRow.hidden = !showHolidayPay;
+    if (officialHolidayValueRow) officialHolidayValueRow.hidden = !showHolidayPay;
     if (holidayFormulaRow) holidayFormulaRow.hidden = !showHolidayPay;
     const holidayFormula = document.getElementById('pOfficialHolidayFormula');
     if (holidayFormula) {

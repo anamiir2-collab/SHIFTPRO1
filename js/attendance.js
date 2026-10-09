@@ -325,7 +325,20 @@
       !entry.to &&
       (entry.status === 'A' || entry.status === 'X')
     ) {
-      const startDate = entry.fromDate || SPUtils.fmtDate(new Date());
+      // Legacy records that have `from` but no `fromDate` cannot be safely
+      // interpreted as "today's open check-in" — they were created by an
+      // older app version on whatever day they belong to. Treat them as
+      // completed shifts using the configured shift hours so their working
+      // hours and salary are counted correctly.
+      if (!entry.fromDate) {
+        const configuredHours =
+          Number(storage.getSettings().shiftHours) || 12;
+        return entry.status === 'X'
+          ? configuredHours * 2
+          : configuredHours;
+      }
+
+      const startDate = entry.fromDate;
       const todayDate = SPUtils.fmtDate(new Date());
 
       // السجل القديم الذي لا يحتوي على انصراف لا يُحسب من تاريخ قديم حتى الآن.
