@@ -290,17 +290,26 @@
     <div class="row between"><span class="fs-sm muted fw-bold" data-i18n="salarypage.total_label">الإجمالي</span><strong class="fs-lg accent" id="pHours">0 س</strong></div>
   </div>
 
-  <div class="card">
-    <p class="card-title" data-i18n="salarypage.calc_title">حساب الراتب</p>
+  <div class="card salary-breakdown-card">
+    <p class="card-title" data-i18n="salarypage.calc_title">تفصيل حساب الراتب</p>
     <div class="row between mb-2"><span class="fs-sm muted" data-i18n="salarypage.rate">سعر الساعة</span><strong id="pRate">0 ج/س</strong></div>
     <div class="row between mb-2"><span class="fs-sm muted" data-i18n="salarypage.overtime_rate">سعر الإضافي</span><strong id="pOvertimeRate">0 ج/س</strong></div>
     <div class="divider"></div>
-    <div class="row between mb-2"><span class="fs-sm muted" data-i18n="salary.base_salary">الراتب الأساسي</span><strong id="pBaseSalary">0 ج</strong></div>
-    <div class="row between mb-2"><span class="fs-sm muted" data-i18n="salarypage.plus_overtime">+ الإضافي</span><strong class="success" id="pOvertimeValue">0 ج</strong></div>
+    <div class="row between mb-1"><span class="fs-sm muted" data-i18n="salary.base_salary">الأجر الأساسي</span><strong id="pBaseSalary">0 ج</strong></div>
+    <p class="hint salary-formula" id="pBaseFormula">الساعات الأساسية × سعر الساعة</p>
+    <div class="row between mb-1"><span class="fs-sm muted" data-i18n="salarypage.plus_overtime">+ الإضافي</span><strong class="success" id="pOvertimeValue">0 ج</strong></div>
+    <p class="hint salary-formula" id="pOvertimeFormula">ساعات الإضافي × سعر الإضافي</p>
+    <div class="row between mb-2" id="pOfficialHolidayValueRow" hidden><span class="fs-sm muted" data-i18n="salarypage.official_holiday_pay">+ مقابل العمل في العطلات الرسمية</span><strong class="success" id="pOfficialHolidayValue">0 ج</strong></div>
+    <p class="hint salary-formula" id="pOfficialHolidayFormula"></p>
     <div class="row between mb-2"><span class="fs-sm muted" data-i18n="salarypage.plus_bonus">+ المكافآت</span><strong class="success" id="pBonus">0 ج</strong></div>
     <div class="row between mb-2"><span class="fs-sm muted" data-i18n="salarypage.plus_allowance">+ البدلات</span><strong class="success" id="pAllowance">0 ج</strong></div>
-    <div class="row between mb-2"><span class="fs-sm muted" data-i18n="salarypage.minus_deductions">− الخصومات</span><strong class="danger" id="pDeduction">0 ج</strong></div>
+    <div class="divider"></div>
+    <div class="row between mb-2"><span class="fw-bold" data-i18n="salarypage.gross_salary">إجمالي المستحق قبل الخصومات</span><strong id="pGrossSalary">0 ج</strong></div>
+    <div class="row between mb-2"><span class="fs-sm muted" data-i18n="salarypage.manual_deduction">الخصومات المسجلة</span><strong class="danger" id="pDeduction">0 ج</strong></div>
+    <div class="row between mb-2"><span class="fs-sm muted" data-i18n="salarypage.absence_deduction">خصم الغياب</span><strong class="danger" id="pAbsenceDeduction">0 ج</strong></div>
+    <div class="row between mb-2"><span class="fs-sm muted" data-i18n="salarypage.late_deduction">خصم التأخير</span><strong class="danger" id="pLateDeduction">0 ج</strong></div>
     <div class="row between mb-2"><span class="fs-sm muted" data-i18n="salarypage.minus_advances">− السلف</span><strong class="danger" id="pAdvance">0 ج</strong></div>
+    <div class="row between mb-2"><span class="fw-bold" data-i18n="salarypage.total_deductions">إجمالي الخصومات والسلف</span><strong class="danger" id="pTotalDeductions">0 ج</strong></div>
     <div class="divider"></div>
     <div class="row between">
       <span class="fw-bold" data-i18n="salarypage.net_due">صافي المستحق</span>
@@ -1076,7 +1085,7 @@
 <script src="js/ical-export.js?v=2.3.0"></script>
 <script src="js/calendar.js?v=2.3.0"></script>
 <script src="js/attendance.js?v=2.3.1"></script>
-<script src="js/salary.js?v=2.3.0"></script>
+<script src="js/salary.js?v=2.3.1"></script>
 <script src="js/reports.js?v=2.3.1"></script>
 <script src="js/settings.js?v=2.3.2"></script>
 <script src="js/welcome-messages.js?v=1.0.0"></script>
