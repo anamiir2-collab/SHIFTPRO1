@@ -60,6 +60,8 @@
     'clock.aria': 'Live clock — Cairo time',
 
     // ====== Dashboard ======
+    'dashboard.welcome_ar': 'أهلًا بك في ShiftPro',
+    'dashboard.welcome_en': 'Welcome to ShiftPro',
     'dashboard.greeting_morning': 'Good morning',
     'dashboard.greeting_noon': 'Good day',
     'dashboard.greeting_evening': 'Good evening',
