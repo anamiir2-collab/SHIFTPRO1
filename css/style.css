@@ -4357,3 +4357,118 @@ button.ios-setting-row .ios-row-value {
 @media (prefers-reduced-motion: reduce) {
   #todayBtn.today-btn { transition: none; }
 }
+
+
+/* =========================================================
+   ShiftPro — Unified colorful bottom navigation + motion
+   Visual-only enhancement: keeps existing tabs and behavior.
+   ========================================================= */
+.tabbar {
+  border-top: 1px solid color-mix(in srgb, var(--accent-2) 18%, var(--line));
+  box-shadow: 0 -10px 30px color-mix(in srgb, var(--accent-2) 10%, transparent);
+}
+.tabbar .tab-btn {
+  isolation: isolate;
+  border-radius: 15px;
+  margin: 5px 3px 4px;
+  min-width: 0;
+  transition:
+    color .25s var(--ease),
+    transform .28s var(--ease),
+    background .28s ease,
+    box-shadow .28s ease;
+}
+.tabbar .tab-btn::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 2px 3px;
+  border-radius: 13px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent-2) 12%, transparent),
+    color-mix(in srgb, var(--accent) 5%, transparent));
+  opacity: 0;
+  transform: scale(.88);
+  transition: opacity .28s ease, transform .28s var(--ease);
+}
+.tabbar .tab-btn .ic {
+  display: inline-grid;
+  place-items: center;
+  color: var(--muted);
+  transition: color .25s ease, transform .3s var(--ease), filter .3s ease;
+}
+.tabbar .tab-btn .ic svg {
+  transition: stroke .25s ease, fill .25s ease;
+}
+.tabbar .tab-btn .tab-label {
+  color: var(--muted);
+  transition: color .25s ease, transform .25s var(--ease);
+}
+.tabbar .tab-btn.active {
+  color: var(--accent-2);
+}
+.tabbar .tab-btn.active::before {
+  opacity: 1;
+  transform: scale(1);
+}
+.tabbar .tab-btn.active .ic {
+  color: var(--accent-2);
+  filter: drop-shadow(0 4px 8px color-mix(in srgb, var(--accent-2) 28%, transparent));
+  animation: spNavIconPop .42s var(--ease) both;
+}
+.tabbar .tab-btn.active .tab-label {
+  color: var(--accent-2);
+  font-weight: 800;
+  transform: translateY(-1px);
+}
+.tabbar .tab-btn.active::after {
+  top: 1px;
+  width: 28px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-2) 38%, transparent);
+  animation: spNavIndicator .35s var(--ease) both;
+}
+.tabbar .tab-btn:hover::before,
+.tabbar .tab-btn:focus-visible::before {
+  opacity: .75;
+  transform: scale(1);
+}
+.tabbar .tab-btn:hover .ic {
+  color: var(--accent-2);
+  transform: translateY(-2px);
+}
+.tabbar .tab-btn:active {
+  transform: scale(.94);
+}
+.tabbar .tab-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent-2) 65%, transparent);
+  outline-offset: -2px;
+}
+:root[data-theme="dark"] .tabbar .tab-btn.active::before {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 18%, transparent),
+    color-mix(in srgb, var(--accent-2) 10%, transparent));
+}
+:root[data-theme="dark"] .tabbar .tab-btn.active .ic,
+:root[data-theme="dark"] .tabbar .tab-btn.active .tab-label {
+  color: var(--accent);
+}
+@keyframes spNavIconPop {
+  0% { transform: translateY(2px) scale(.86); }
+  65% { transform: translateY(-3px) scale(1.13); }
+  100% { transform: translateY(-2px) scale(1.08); }
+}
+@keyframes spNavIndicator {
+  from { opacity: .25; transform: translateX(-50%) scaleX(.35); }
+  to { opacity: 1; transform: translateX(-50%) scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tabbar .tab-btn,
+  .tabbar .tab-btn::before,
+  .tabbar .tab-btn .ic,
+  .tabbar .tab-btn .tab-label {
+    animation: none !important;
+    transition: none !important;
+  }
+}
