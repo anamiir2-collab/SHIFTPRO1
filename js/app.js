@@ -82,6 +82,11 @@
       ? SPi18n.t(welcomeKey, { name: displayName })
       : (isAr ? 'مرحباً يا ' + displayName : 'Welcome, ' + displayName);
 
+    // Show one personalized motivational message per app load.
+    if (window.SPWelcomeMessages) {
+      SPWelcomeMessages.render(displayName, isAr ? 'ar' : 'en');
+    }
+
     // Sub-greeting (contextual)
     const subEl = $('#welcomeSubText');
     if (subEl) subEl.textContent = subGreeting();
