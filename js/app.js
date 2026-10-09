@@ -14,6 +14,7 @@
 
   let unsubStore = null;
   let installPromptEvent = null;
+  let liveAttendanceTimerId = null;
 
   // ---------- Splash ----------
   function hideSplash() {
@@ -55,6 +56,55 @@
     if (h < 17) return t('dashboard.sub_welcome_noon');
     if (h < 21) return t('dashboard.sub_welcome_evening');
     return t('dashboard.sub_welcome_night');
+  }
+
+
+  // ---------- Live check-in elapsed time and remaining shift countdown ----------
+  function formatDurationClock(totalSeconds) {
+    const value = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+    const hours = Math.floor(value / 3600);
+    const minutes = Math.floor((value % 3600) / 60);
+    const seconds = value % 60;
+    return [hours, minutes, seconds].map((n) => String(n).padStart(2, '0')).join(':');
+  }
+
+  function updateLiveAttendanceTimer() {
+    const card = $('#shiftCountdownCard');
+    if (!card) return;
+    const now = new Date();
+    const today = fmtDate(now);
+    const entry = storage.getEntry(today);
+    const active = entry && (entry.status === 'A' || entry.status === 'X') && entry.from && !entry.to;
+    card.hidden = !active;
+    if (!active) return;
+
+    const startDate = entry.fromDate || today;
+    const startedAt = new Date(startDate + 'T' + entry.from + ':00');
+    const elapsedSeconds = Number.isNaN(startedAt.getTime())
+      ? 0
+      : Math.max(0, Math.floor((now.getTime() - startedAt.getTime()) / 1000));
+    const scheduledCode = storage.getScheduledCode(today);
+    const shift = scheduledCode ? storage.getShiftByCode(scheduledCode) : null;
+    const settings = storage.getSettings();
+    const requiredHours = Math.max(0, Number(shift ? shift.hours : settings.shiftHours) || 12);
+    const requiredSeconds = Math.round(requiredHours * 3600);
+    const remainingSeconds = Math.max(0, requiredSeconds - elapsedSeconds);
+    const elapsedHours = elapsedSeconds / 3600;
+    const progress = requiredSeconds > 0
+      ? Math.min(100, (elapsedSeconds / requiredSeconds) * 100)
+      : 100;
+
+    $('#workedElapsed').textContent = formatDurationClock(elapsedSeconds);
+    $('#workedRemaining').textContent = formatDurationClock(remainingSeconds);
+    $('#shiftProgressBar').style.width = progress + '%';
+    $('#shiftCountdownStatus').textContent = remainingSeconds > 0
+      ? t('dashboard.countdown_remaining', { time: formatDurationClock(remainingSeconds) })
+      : t('dashboard.countdown_complete');
+
+    // Keep today's total, overtime, and estimated value live while checked in.
+    $('#todayHours').textContent = fmtHours(elapsedHours);
+    $('#todayOvertime').textContent = '+' + fmtHours(SPAttendance.computeOvertimeHours(now, entry));
+    $('#todayValue').textContent = fmtCurrency(SPAttendance.dayValue(now, entry));
   }
 
   function renderDashboard() {
@@ -600,6 +650,8 @@ function setupInstallPrompt() {
     // Other pages are rendered when the user opens them, preventing a heavy
     // first-load freeze on mobile/PWA.
     safeInit('dashboard', renderDashboard);
+    updateLiveAttendanceTimer();
+    if (!liveAttendanceTimerId) liveAttendanceTimerId = setInterval(updateLiveAttendanceTimer, 1000);
 
     // Live clock (Africa/Cairo) — يعمل بعد أول رسم حتى لا يؤخر الإقلاع
     if (window.SPClock) {
