@@ -256,7 +256,8 @@
         total: type.defaultBalance,
         used: 0,
         carryover: 0,
-        carryoverEnabled: false
+        carryoverEnabled: false,
+        carryoverUseEnabled: true
       };
     });
     return result;
@@ -299,14 +300,16 @@
     const used = calculateUsedByType(year);
     const result = {};
     LEAVE_TYPES.forEach((type) => {
-      const s = stored[type.id] || { total: type.defaultBalance, carryover: 0, carryoverEnabled: false };
-      const total = (Number(s.total) || 0) + (Number(s.carryover) || 0);
+      const s = stored[type.id] || { total: type.defaultBalance, carryover: 0, carryoverEnabled: false, carryoverUseEnabled: true };
+      const carryover = s.carryoverUseEnabled !== false ? (Number(s.carryover) || 0) : 0;
+      const total = (Number(s.total) || 0) + carryover;
       result[type.id] = {
         total: total,
         used: used[type.id] || 0,
         remaining: total - (used[type.id] || 0),
         carryover: Number(s.carryover) || 0,
-        carryoverEnabled: !!s.carryoverEnabled
+        carryoverEnabled: !!s.carryoverEnabled,
+        carryoverUseEnabled: s.carryoverUseEnabled !== false
       };
     });
     return result;
