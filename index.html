@@ -235,6 +235,7 @@
   </div>
   <div class="row gap-2 mb-3">
     <button class="today-btn" id="todayBtn" data-i18n="common.today">اليوم</button>
+    <button class="btn ghost sm" id="toggleScheduleViewBtn" type="button" aria-controls="calendarScheduleContent" aria-expanded="true">إخفاء الجدول</button>
     <button class="btn ghost sm" id="patternBtn">
       <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h12"></path></svg>
       <span data-i18n="calendar.apply_shift">تطبيق وردية</span>
@@ -248,6 +249,7 @@
     <button class="btn sm danger" id="clearSelected" data-i18n="calendar.clear">مسح</button>
   </div>
 
+  <div id="calendarScheduleContent">
   <div class="weekdays" id="weekdaysRow">
     <span data-i18n="calendar.weekday_sun">أحد</span><span data-i18n="calendar.weekday_mon">إثنين</span><span data-i18n="calendar.weekday_tue">ثلاثاء</span><span data-i18n="calendar.weekday_wed">أربعاء</span><span data-i18n="calendar.weekday_thu">خميس</span><span data-i18n="calendar.weekday_fri">جمعة</span><span data-i18n="calendar.weekday_sat">سبت</span>
   </div>
@@ -262,6 +264,7 @@
     <span id="legendHoliday" hidden><i class="dot" style="background:var(--warning)"></i> <span data-i18n="legend.holiday">إجازة رسمية</span></span>
   </div>
   <p class="hint" data-i18n="calendar.hint">اضغط على أي يوم لتحديد نوع الوردية وتسجيل الحضور. اضغط مطولاً لتحديد عدة أيام وتطبيق وردية عليها دفعة واحدة.</p>
+  </div>
 </section>
 
 <!-- ============ PAGE: SALARY ============ -->
