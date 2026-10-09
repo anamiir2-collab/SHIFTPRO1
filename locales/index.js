@@ -84,7 +84,7 @@
     }
     if (val == null) {
       // لا تعرض مفاتيح الترجمة الخام للمستخدم؛ أظهر نصًا فارغًا بدلًا منها.
-      return currentLocale === 'ar' ? '' : key;
+      return '';
     }
     return interpolate(val, vars);
   }
