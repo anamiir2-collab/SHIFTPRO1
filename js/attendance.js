@@ -326,6 +326,19 @@
       (entry.status === 'A' || entry.status === 'X')
     ) {
       const startDate = entry.fromDate || SPUtils.fmtDate(new Date());
+      const todayDate = SPUtils.fmtDate(new Date());
+
+      // السجل القديم الذي لا يحتوي على انصراف لا يُحسب من تاريخ قديم حتى الآن.
+      // نعتبر اليوم السابق وردية مكتملة بحسب جدول ذلك اليوم أو ساعات الوردية بالإعدادات.
+      if (startDate < todayDate) {
+        const scheduledCode = storage.getScheduledCode(startDate);
+        const scheduledShift = scheduledCode ? storage.getShiftByCode(scheduledCode) : null;
+        const scheduledHours = scheduledShift ? Number(scheduledShift.hours) : 0;
+        const configuredHours = Number(storage.getSettings().shiftHours) || 12;
+        const completedHours = scheduledHours > 0 ? scheduledHours : configuredHours;
+        return entry.status === 'X' ? completedHours * 2 : completedHours;
+      }
+
       const startedAt = new Date(startDate + 'T' + entry.from + ':00');
       if (!Number.isNaN(startedAt.getTime())) {
         return Math.max(0, (Date.now() - startedAt.getTime()) / 3600000);
@@ -1302,19 +1315,35 @@
         const scheduledCode = storage.getScheduledCode(selectedDate);
         const scheduledShift = scheduledCode ? storage.getShiftByCode(scheduledCode) : null;
 
-        if (scheduledShift && scheduledShift.startTime && scheduledShift.endTime) {
-          entry.from = scheduledShift.startTime;
-          entry.to = scheduledShift.endTime;
-          entry.fromDate = selectedDate;
-          const overnight = scheduledShift.endTime <= scheduledShift.startTime;
-          const nextDate = new Date(activeDate);
-          nextDate.setDate(nextDate.getDate() + 1);
-          entry.toDate = overnight ? fmtDate(nextDate) : selectedDate;
-          $('#inpFrom').value = entry.from;
-          $('#inpTo').value = entry.to;
-          if ($('#inpFromDate')) $('#inpFromDate').value = entry.fromDate;
-          if ($('#inpToDate')) $('#inpToDate').value = entry.toDate;
-        }
+        // سجّل الوردية كاملة لليوم السابق حتى تظهر الساعات وتدخل في الراتب.
+        const startTime = scheduledShift && scheduledShift.startTime
+          ? scheduledShift.startTime
+          : '07:00';
+        const configuredHours = Number(storage.getSettings().shiftHours) || 12;
+        const shiftHours = scheduledShift && Number(scheduledShift.hours) > 0
+          ? Number(scheduledShift.hours)
+          : configuredHours;
+        const endTime = scheduledShift && scheduledShift.endTime
+          ? scheduledShift.endTime
+          : (() => {
+              const parts = startTime.split(':').map(Number);
+              const total = parts[0] * 60 + parts[1] + Math.round(shiftHours * 60);
+              const mins = ((total % 1440) + 1440) % 1440;
+              return String(Math.floor(mins / 60)).padStart(2, '0') + ':' +
+                String(mins % 60).padStart(2, '0');
+            })();
+
+        entry.from = startTime;
+        entry.to = endTime;
+        entry.fromDate = selectedDate;
+        const overnight = endTime <= startTime;
+        const nextDate = new Date(activeDate);
+        nextDate.setDate(nextDate.getDate() + 1);
+        entry.toDate = overnight ? fmtDate(nextDate) : selectedDate;
+        $('#inpFrom').value = entry.from;
+        $('#inpTo').value = entry.to;
+        if ($('#inpFromDate')) $('#inpFromDate').value = entry.fromDate;
+        if ($('#inpToDate')) $('#inpToDate').value = entry.toDate;
       }
     }
 
