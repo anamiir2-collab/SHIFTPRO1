@@ -496,7 +496,7 @@
     'more.leave': 'Leaves & balances',
     'more.stats': 'Advanced statistics',
     'more.backup': 'Backup',
-    'more.labor_law': 'Egyptian Labor Law',
+    'more.labor_law': 'Your Labor Advisor — Egyptian Labor Law',
     'more.about': 'About the app',
 
     // ====== Sheet: App control ======
