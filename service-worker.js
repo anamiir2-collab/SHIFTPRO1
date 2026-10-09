@@ -4,11 +4,11 @@
    - runtime: network-first for navigations, cache-first for static assets
    - cleanup: drop old caches on activate
 */
-const SW_VERSION = 'shifpro-v2.5.1';
+const SW_VERSION = 'shifpro-v2.5.2';
 const APP_SHELL = [
   './',
   './index.html',
-  './labor-law.html',
+  './labor-law.js',
   './manifest.json',
   './css/style.css',
   './css/animations.css',
