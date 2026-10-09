@@ -83,8 +83,8 @@
       val = global.SPi18n_en[key];
     }
     if (val == null) {
-      // لا نعرض العربية أبدًا في الوضع الإنجليزي — نرجّع المفتاح للتشخيص
-      return key;
+      // لا تعرض مفاتيح الترجمة الخام للمستخدم؛ أظهر نصًا فارغًا بدلًا منها.
+      return currentLocale === 'ar' ? '' : key;
     }
     return interpolate(val, vars);
   }
