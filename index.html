@@ -371,6 +371,10 @@
   <!-- Export: disclosure menu (reuses existing export functions) -->
   <div class="report-disclosure nav-print-hide"><button class="report-disclosure-trigger" type="button" id="exportMenuTrigger" aria-expanded="false" data-export-menu><span class="report-disclosure-leading"><span class="ios-icon-box"><svg viewBox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M4 21h16"></path></svg></span><span><strong data-i18n="reports.export_title">تحميل التقرير</strong><small data-i18n="reports.export_sub">الجدول والملخص بنفس بيانات الفترة المحددة</small></span></span><svg class="report-chevron" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"></path></svg></button><div class="report-disclosure-content" id="exportMenuPanel" hidden><div class="export-menu" id="exportMenu"><button type="button" class="export-item" data-export-format="xlsx"><span class="export-ico excel">X</span><span data-i18n="export.excel">Excel (XLSX)</span></button><button type="button" class="export-item" data-export-format="pdf"><span class="export-ico pdf">P</span><span data-i18n="export.pdf">PDF</span></button><button type="button" class="export-item" data-export-format="csv"><span class="export-ico csv">C</span><span data-i18n="export.csv">CSV</span></button><button type="button" class="export-item" data-export-format="json"><span class="export-ico json">J</span><span data-i18n="export.json">JSON</span></button><button type="button" class="export-item" data-export-format="ics"><span class="export-ico ics">i</span><span data-i18n="export.ics">iCal (.ics)</span></button><button type="button" class="export-item" data-export-format="print"><span class="export-ico print">P</span><span data-i18n="export.print">طباعة</span></button></div></div></div>
 
+  <div class="row gap-2 mb-2">
+    <button class="btn ghost sm" id="toggleReportTableBtn" type="button" aria-controls="reportTableVisibilityPanel" aria-expanded="true">إخفاء الجدول</button>
+  </div>
+  <div class="report-table-panel" id="reportTableVisibilityPanel">
   <div class="table-wrap">
     <table class="tbl" id="reportTable">
       <thead>
@@ -381,6 +385,7 @@
         <tr><td colspan="5" data-i18n="reports.total">الإجمالي</td><td id="reportTotalHours">0</td><td id="reportTotalValue">0</td></tr>
       </tfoot>
     </table>
+  </div>
   </div>
   <p class="hint" data-i18n="reports.pdf_hint">تصدير PDF يفتح نافذة الطباعة — اختر «حفظ كـ PDF» من قائمة الطابعات. تصدير JSON يحفظ نسخة احتياطية كاملة.</p>
 </section>
@@ -1072,7 +1077,7 @@
 <script src="js/calendar.js?v=2.3.0"></script>
 <script src="js/attendance.js?v=2.3.1"></script>
 <script src="js/salary.js?v=2.3.0"></script>
-<script src="js/reports.js?v=2.3.0"></script>
+<script src="js/reports.js?v=2.3.1"></script>
 <script src="js/settings.js?v=2.3.2"></script>
 <script src="js/welcome-messages.js?v=1.0.0"></script>
 <script src="js/app.js?v=2.3.2"></script>
