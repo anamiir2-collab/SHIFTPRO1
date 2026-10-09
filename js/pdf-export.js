@@ -105,7 +105,7 @@
     const lang = isAr ? 'ar' : 'en';
 
     const reportNode = el('div', {
-      style: 'background:#fff;color:#0d1f35;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;padding:30px;width:794px;min-height:1123px;direction:' + dir + ';',
+      style: 'background:#fff;color:#0d1f35;font-family:Cairo,"IBM Plex Sans Arabic","Noto Sans Arabic",Tahoma,Arial,sans-serif;padding:30px;width:794px;min-height:1123px;direction:' + dir + ';text-align:' + (isAr ? 'right' : 'left') + ';line-height:1.75;overflow-wrap:anywhere;box-sizing:border-box;',
       lang: lang,
       dir: dir
     });
@@ -265,9 +265,11 @@
 
     try {
       // ---------- تحويل لـ canvas ----------
+      // انتظر الخطوط العربية حتى تظهر الحروف متصلة وباتجاه صحيح داخل ملف PDF.
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
       const html2canvas = await loadHtml2canvas();
       const canvas = await html2canvas(reportNode, {
-        scale: 2,
+        scale: 2.5,
         backgroundColor: '#ffffff',
         logging: false,
         useCORS: true
@@ -334,7 +336,7 @@
     const isAr = (global.SPi18n && SPi18n.getLocale() === 'ar');
 
     const receiptNode = SPUtils.el('div', {
-      style: 'background:#fff;color:#0d1f35;font-family:-apple-system,sans-serif;padding:30px;width:400px;direction:' + (isAr ? 'rtl' : 'ltr') + ';'
+      style: 'background:#fff;color:#0d1f35;font-family:Cairo,"IBM Plex Sans Arabic","Noto Sans Arabic",Tahoma,Arial,sans-serif;padding:30px;width:400px;direction:' + (isAr ? 'rtl' : 'ltr') + ';text-align:' + (isAr ? 'right' : 'left') + ';line-height:1.75;box-sizing:border-box;'
     });
     receiptNode.appendChild(SPUtils.el('h2', { style: 'text-align:center;color:#2563eb;margin:0 0 10px;' }, ['ShiftPro']));
     receiptNode.appendChild(SPUtils.el('p', { style: 'text-align:center;color:#6b7280;margin:0 0 20px;' }, [
@@ -363,8 +365,9 @@
     document.body.appendChild(receiptNode);
 
     try {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
       const html2canvas = await loadHtml2canvas();
-      const canvas = await html2canvas(receiptNode, { scale: 2, backgroundColor: '#fff', logging: false });
+      const canvas = await html2canvas(receiptNode, { scale: 2.5, backgroundColor: '#fff', logging: false });
       const jsPDF = await loadJsPDF();
       const pdf = new jsPDF({ unit: 'mm', format: 'a6', orientation: 'portrait' });
       const imgData = canvas.toDataURL('image/png');
