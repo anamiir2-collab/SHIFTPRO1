@@ -184,27 +184,32 @@
   function checkShiftEndReminder() {
     const s = getSettings();
     if (!s.enabled || s.shiftEndReminder === false || !global.SPStorage || !global.SPUtils) return;
+
     const now = new Date();
-    const dstr = SPUtils.fmtDate(now);
-    const code = SPStorage.getScheduledCode(dstr);
-    if (!code) return;
-    const shift = SPStorage.getShiftByCode(code);
-    if (!shift || !shift.endTime) return;
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // افحص وردية اليوم ووردية أمس أيضًا لدعم الورديات الليلية التي تنتهي بعد منتصف الليل.
+    [new Date(today.getTime() - 86400000), today].forEach((shiftDate) => {
+      const shiftDateStr = SPUtils.fmtDate(shiftDate);
+      const code = SPStorage.getScheduledCode(shiftDateStr);
+      if (!code) return;
+      const shift = SPStorage.getShiftByCode(code);
+      if (!shift || !shift.endTime) return;
 
-    const end = new Date(dstr + 'T' + shift.endTime + ':00');
-    if (shift.startTime && shift.endTime <= shift.startTime) end.setDate(end.getDate() + 1);
-    const elapsedMs = now.getTime() - end.getTime();
-    if (elapsedMs < 0 || elapsedMs > 5 * 60000) return;
+      const end = new Date(shiftDateStr + 'T' + shift.endTime + ':00');
+      if (shift.startTime && shift.endTime <= shift.startTime) end.setDate(end.getDate() + 1);
+      const elapsedMs = now.getTime() - end.getTime();
+      if (elapsedMs < 0 || elapsedMs > 5 * 60000) return;
 
-    const entry = SPStorage.getEntry(dstr);
-    if (entry && entry.to) return;
-    const key = 'shift_end_' + dstr;
-    if (s.lastShown[key]) return;
-    saveSettings({ lastShown: { [key]: Date.now() } });
-    show(t('notif.shift_end_title'), t('notif.shift_end_body', {
-      time: SPUtils.fmtTime12(shift.endTime),
-      shift: shift.name || ''
-    }), { tag: key, requireInteraction: true });
+      const entry = SPStorage.getEntry(shiftDateStr);
+      if (entry && entry.to) return;
+      const key = 'shift_end_' + shiftDateStr;
+      if (s.lastShown[key]) return;
+      saveSettings({ lastShown: { [key]: Date.now() } });
+      show(t('notif.shift_end_title'), t('notif.shift_end_body', {
+        time: SPUtils.fmtTime12(shift.endTime),
+        shift: shift.name || ''
+      }), { tag: key, requireInteraction: true });
+    });
   }
 
   // ---------- تنبيه: إجازة معتمدة غدًا ----------
