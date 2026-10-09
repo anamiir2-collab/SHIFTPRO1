@@ -13,7 +13,7 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="favicon-32.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="stylesheet" href="css/style.css?v=2.3.4">
+  <link rel="stylesheet" href="css/style.css?v=2.3.5">
   <link rel="stylesheet" href="css/animations.css?v=2.3.0">
   <link rel="stylesheet" href="css/ios-style.css?v=2.3.0">
   <!-- Arabic-first typography: Cairo (Arabic) + IBM Plex Sans Arabic as fallback.
@@ -130,6 +130,27 @@
       </span>
     </button>
   </div>
+
+  <section class="card shift-countdown-card" id="shiftCountdownCard" hidden aria-live="polite">
+    <p class="card-title">
+      <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+      <span data-i18n="dashboard.shift_countdown_title">متابعة ساعات الوردية</span>
+    </p>
+    <div class="shift-countdown-grid">
+      <div class="shift-countdown-metric">
+        <span data-i18n="dashboard.elapsed_time">الوقت المنقضي</span>
+        <strong id="workedElapsed">00:00:00</strong>
+      </div>
+      <div class="shift-countdown-metric remaining">
+        <span data-i18n="dashboard.remaining_time">المتبقي من ساعات اليوم</span>
+        <strong id="workedRemaining">00:00:00</strong>
+      </div>
+    </div>
+    <div class="shift-countdown-progress" role="progressbar" aria-label="Shift progress" aria-valuemin="0" aria-valuemax="100">
+      <span id="shiftProgressBar"></span>
+    </div>
+    <p class="shift-countdown-status" id="shiftCountdownStatus"></p>
+  </section>
 
   <div class="card">
     <p class="card-title">
@@ -1049,11 +1070,11 @@
 <script src="js/ux-enhancements.js?v=2.3.0"></script>
 <script src="js/ical-export.js?v=2.3.0"></script>
 <script src="js/calendar.js?v=2.3.0"></script>
-<script src="js/attendance.js?v=2.3.0"></script>
+<script src="js/attendance.js?v=2.3.1"></script>
 <script src="js/salary.js?v=2.3.0"></script>
 <script src="js/reports.js?v=2.3.0"></script>
 <script src="js/settings.js?v=2.3.2"></script>
 <script src="js/welcome-messages.js?v=1.0.0"></script>
-<script src="js/app.js?v=2.3.1"></script>
+<script src="js/app.js?v=2.3.2"></script>
 </body>
 </html>
