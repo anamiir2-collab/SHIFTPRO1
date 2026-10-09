@@ -294,7 +294,7 @@
     'salarypage.overtime_rate': 'سعر الإضافي',
     'salarypage.formula_base': '{hours} ساعة × {rate} ج/س',
     'salarypage.formula_overtime': '{hours} ساعة × {rate} ج/س',
-    'salarypage.formula_holiday': '{hours} ساعة × {multiplier} × {rate} ج/س',
+    'salarypage.formula_holiday': '{hours} ساعة إضافية × {rate} ج/س',
     'salarypage.official_holiday_pay': '+ مقابل العمل في العطلات الرسمية',
     'salarypage.gross_salary': 'إجمالي المستحق قبل الخصومات',
     'salarypage.manual_deduction': 'الخصومات المسجلة',
