@@ -4,10 +4,11 @@
    - runtime: network-first for navigations, cache-first for static assets
    - cleanup: drop old caches on activate
 */
-const SW_VERSION = 'shifpro-v2.5.0';
+const SW_VERSION = 'shifpro-v2.5.1';
 const APP_SHELL = [
   './',
   './index.html',
+  './labor-law.html',
   './manifest.json',
   './css/style.css',
   './css/animations.css',
@@ -93,7 +94,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(SW_VERSION).then((c) => c.put('./index.html', copy)).catch(()=>{});
           return res;
         })
-        .catch(() => caches.match('./index.html'))
+        .catch(() => caches.match(req).then((cached) => cached || caches.match('./index.html'))
     );
     return;
   }
