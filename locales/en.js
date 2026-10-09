@@ -385,6 +385,7 @@
     'settings.title': 'Settings',
     'settings.subtitle': 'Your basic employee and work information',
     'settings.section_salary_comp': 'Salary & Calculation',
+    'settings.section_salary_comp_sub': 'Configure pay, hours, overtime, deductions, and pay cycle',
     'settings.link_control': 'Language & Appearance',
     'settings.employee': 'Employee info',
     'settings.name_label': 'Name',
