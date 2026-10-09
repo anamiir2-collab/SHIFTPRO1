@@ -471,98 +471,93 @@ function setupInstallPrompt() {
   const banner = $('#installBanner');
   const acceptBtn = $('#installAcceptBtn');
   const dismissBtn = $('#installDismissBtn');
-
   if (!banner || !acceptBtn || !dismissBtn) return;
 
-  // يبدأ مخفي
   banner.hidden = true;
   banner.setAttribute('aria-hidden', 'true');
   banner.style.pointerEvents = 'none';
 
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    installPromptEvent = e;
+  // لا تعرض خيار التثبيت إذا كان التطبيق يعمل بالفعل كتطبيق مثبت.
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    navigator.standalone === true;
+  if (isStandalone) return;
 
+  const wasDismissedRecently = () => {
     const dismissed = storage.getMeta('installDismissedAt');
+    if (!dismissed) return false;
+    const dismissedTime = new Date(dismissed).getTime();
+    if (!Number.isFinite(dismissedTime)) return false;
+    return (Date.now() - dismissedTime) / 86400000 < 7;
+  };
 
-    if (dismissed) {
-      const days =
-        (Date.now() - new Date(dismissed).getTime()) / 86400000;
-
-      if (days < 7) return;
-    }
-
-    if (installBannerTimer) {
-      clearTimeout(installBannerTimer);
-    }
-
+  const scheduleBanner = (delay = 2500) => {
+    if (wasDismissedRecently() || installBannerTimer) return;
     installBannerTimer = setTimeout(() => {
       installBannerTimer = null;
       showInstallBanner();
-    }, 3000);
+    }, delay);
+  };
+
+  // Android/Chrome: احتفظ بحدث التثبيت الحقيقي إن كان المتصفح يدعمه.
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    installPromptEvent = e;
+    scheduleBanner(800);
   });
 
-  // زر تثبيت
+  // iOS وبعض المتصفحات لا تطلق beforeinstallprompt؛ اعرض إرشاد التثبيت اليدوي.
+  // هذا يجعل خيار التثبيت متاحًا بدل اختفاء الشريط تمامًا.
+  scheduleBanner(3500);
+
   acceptBtn.addEventListener('click', async (e) => {
     e.preventDefault();
     e.stopPropagation();
-
-    hideInstallBanner(false);
 
     if (!installPromptEvent) {
       toast(t('pwa.manual_hint'), 'info');
       return;
     }
 
+    hideInstallBanner(false);
     const promptEvent = installPromptEvent;
     installPromptEvent = null;
-
     try {
-      promptEvent.prompt();
-
+      await promptEvent.prompt();
       const choice = await promptEvent.userChoice;
-
-      if (choice.outcome === 'accepted') {
-        toast(t('pwa.installing'), 'success');
-      }
+      if (choice.outcome === 'accepted') toast(t('pwa.installing'), 'success');
     } catch (err) {
       console.warn('[PWA] install prompt failed', err);
+      toast(t('pwa.manual_hint'), 'info');
     }
   });
 
-  // زر X
   dismissBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
-
+    if (installBannerTimer) {
+      clearTimeout(installBannerTimer);
+      installBannerTimer = null;
+    }
     hideInstallBanner(true);
   });
 
-  // حماية إضافية لو الضغط وصل للـ banner نفسه
   banner.addEventListener('click', (e) => {
-    if (
-      e.target &&
-      e.target.closest &&
-      e.target.closest('#installDismissBtn')
-    ) {
+    if (e.target && e.target.closest && e.target.closest('#installDismissBtn')) {
       e.preventDefault();
       e.stopPropagation();
-
+      if (installBannerTimer) {
+        clearTimeout(installBannerTimer);
+        installBannerTimer = null;
+      }
       hideInstallBanner(true);
     }
   }, true);
 
-  // تم التثبيت
   window.addEventListener('appinstalled', () => {
     installPromptEvent = null;
-
     hideInstallBanner(false);
-
-    storage.setMeta(
-      'installedAt',
-      new Date().toISOString()
-    );
-
+    storage.setMeta('installedAt', new Date().toISOString());
     toast(t('pwa.installed_toast'), 'success');
   });
 }
