@@ -39,6 +39,23 @@
     return global.SPi18n ? global.SPi18n.t(key, vars) : key;
   }
 
+  // راتب بدقة منزلتين عشريتين بدل تقريب كل بند إلى جنيه كامل.
+  function fmtSalaryCurrency(amount) {
+    const locale = global.SPi18n && global.SPi18n.getLocale() === 'en'
+      ? 'en-US'
+      : 'ar-EG';
+    try {
+      return new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: 'EGP',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(Number(amount) || 0);
+    } catch (e) {
+      return fmtNum(Number(amount) || 0, 2) + ' ' + (locale === 'en-US' ? 'EGP' : 'ج.م');
+    }
+  }
+
   function monthName(i) {
     return global.SPi18n ? global.SPi18n.getMonthName(i) : monthNamesAr[i];
   }
@@ -743,58 +760,19 @@
 
       officialHolidayMultiplier,
 
-      baseSalary:
-        Math.round(
-          baseSalary
-        ),
-
-      overtimeValue:
-        Math.round(
-          overtimeValue
-        ),
-
-      officialHolidayValue:
-        Math.round(
-          officialHolidayValue
-        ),
-
+      // Keep full precision in the calculation; round only for display.
+      baseSalary,
+      overtimeValue,
+      officialHolidayValue,
       bonus,
       allowance,
-
-      deduction:
-        Math.round(
-          deduction
-        ),
-
-      advance:
-        Math.round(
-          advance
-        ),
-
-      absenceDeduction:
-        Math.round(
-          absenceDeduction
-        ),
-
-      lateDeduction:
-        Math.round(
-          lateDeduction
-        ),
-
-      grossSalary:
-        Math.round(
-          grossSalary
-        ),
-
-      totalDeductions:
-        Math.round(
-          totalDeductions
-        ),
-
-      netSalary:
-        Math.round(
-          netSalary
-        ),
+      deduction,
+      advance,
+      absenceDeduction,
+      lateDeduction,
+      grossSalary,
+      totalDeductions,
+      netSalary,
 
       adjustments,
 
@@ -893,43 +871,41 @@
         2
       ) + ' ' + t('salarypage.currency_per_hour');
 
-    // Salary
-    $('#pBaseSalary').textContent =
-      fmtCurrency(
-        result.baseSalary
-      );
+    // Detailed salary breakdown: display all components separately.
+    $('#pBaseSalary').textContent = fmtSalaryCurrency(result.baseSalary);
+    $('#pBaseFormula').textContent = t('salarypage.formula_base', {
+      hours: fmtNum(result.baseHours, 2),
+      rate: fmtNum(result.baseRate, 2)
+    });
 
-    $('#pOvertimeValue').textContent =
-      fmtCurrency(
-        result.overtimeValue
-      );
+    $('#pOvertimeValue').textContent = fmtSalaryCurrency(result.overtimeValue);
+    $('#pOvertimeFormula').textContent = t('salarypage.formula_overtime', {
+      hours: fmtNum(result.overtimeHours, 2),
+      rate: fmtNum(result.overtimeRate, 2)
+    });
 
-    $('#pBonus').textContent =
-      fmtCurrency(
-        result.bonus
-      );
+    const holidayRow = document.getElementById('pOfficialHolidayValueRow');
+    if (holidayRow) holidayRow.hidden = !(result.officialHolidayValue > 0);
+    const holidayFormula = document.getElementById('pOfficialHolidayFormula');
+    if (holidayFormula) {
+      holidayFormula.textContent = t('salarypage.formula_holiday', {
+        hours: fmtNum(result.officialHolidayHours, 2),
+        multiplier: fmtNum(result.officialHolidayMultiplier, 2),
+        rate: fmtNum(result.overtimeRate, 2)
+      });
+    }
+    const holidayValue = document.getElementById('pOfficialHolidayValue');
+    if (holidayValue) holidayValue.textContent = fmtSalaryCurrency(result.officialHolidayValue);
 
-    $('#pAllowance').textContent =
-      fmtCurrency(
-        result.allowance
-      );
-
-    $('#pDeduction').textContent =
-      fmtCurrency(
-        result.deduction +
-        result.absenceDeduction +
-        result.lateDeduction
-      );
-
-    $('#pAdvance').textContent =
-      fmtCurrency(
-        result.advance
-      );
-
-    $('#pTotal').textContent =
-      fmtCurrency(
-        result.netSalary
-      );
+    $('#pBonus').textContent = fmtSalaryCurrency(result.bonus);
+    $('#pAllowance').textContent = fmtSalaryCurrency(result.allowance);
+    $('#pGrossSalary').textContent = fmtSalaryCurrency(result.grossSalary);
+    $('#pDeduction').textContent = fmtSalaryCurrency(result.deduction);
+    $('#pAbsenceDeduction').textContent = fmtSalaryCurrency(result.absenceDeduction);
+    $('#pLateDeduction').textContent = fmtSalaryCurrency(result.lateDeduction);
+    $('#pTotalDeductions').textContent = fmtSalaryCurrency(result.totalDeductions);
+    $('#pAdvance').textContent = fmtSalaryCurrency(result.advance);
+    $('#pTotal').textContent = fmtSalaryCurrency(result.netSalary);
 
     renderAdjustments(
       result.adjustments
@@ -1038,7 +1014,7 @@
         }, [
           sign +
           ' ' +
-          fmtCurrency(
+          fmtSalaryCurrency(
             a.amount
           )
         ])
