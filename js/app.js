@@ -619,6 +619,29 @@ function setupInstallPrompt() {
     requestAnimationFrame(() => requestAnimationFrame(releaseSplash));
     setTimeout(releaseSplash, 750);
 
+    // Calendar schedule show/hide preference
+    const scheduleToggle = $('#toggleScheduleViewBtn');
+    const scheduleContent = $('#calendarScheduleContent');
+    if (scheduleToggle && scheduleContent) {
+      let scheduleVisible = true;
+      try { scheduleVisible = localStorage.getItem('spScheduleVisible') !== 'false'; } catch (e) {}
+      const updateScheduleVisibility = () => {
+        scheduleContent.hidden = !scheduleVisible;
+        scheduleToggle.setAttribute('aria-expanded', String(scheduleVisible));
+        const locale = window.SPi18n ? SPi18n.getLocale() : 'ar';
+        scheduleToggle.textContent = locale === 'en'
+          ? (scheduleVisible ? 'Hide schedule' : 'Show schedule')
+          : (scheduleVisible ? 'إخفاء الجدول' : 'إظهار الجدول');
+      };
+      scheduleToggle.addEventListener('click', onClickOnce(() => {
+        scheduleVisible = !scheduleVisible;
+        try { localStorage.setItem('spScheduleVisible', String(scheduleVisible)); } catch (e) {}
+        updateScheduleVisibility();
+      }));
+      updateScheduleVisibility();
+      if (window.SPi18n) SPi18n.subscribe(updateScheduleVisibility);
+    }
+
     // Initialize storage (runs migration if needed)
     try {
       storage.init();
