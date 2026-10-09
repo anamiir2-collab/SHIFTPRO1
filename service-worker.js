@@ -4,12 +4,13 @@
    - runtime: network-first for navigations, cache-first for static assets
    - cleanup: drop old caches on activate
 */
-const SW_VERSION = 'shifpro-v2.3.0';
+const SW_VERSION = 'shifpro-v2.3.1';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
   './css/style.css',
+  './css/animations.css',
   './css/ios-style.css',
   // ملفات i18n (مهمة للتشغيل الأول)
   './locales/ar.js',
@@ -99,7 +100,7 @@ self.addEventListener('fetch', (event) => {
 
   // Static assets -> cache first, then network
   event.respondWith(
-    caches.match(req).then((cached) => {
+    caches.match(req, { ignoreSearch: true }).then((cached) => {
       if (cached) return cached;
       return fetch(req)
         .then((res) => {
