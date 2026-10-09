@@ -294,7 +294,7 @@
     'salarypage.overtime_rate': 'Overtime rate',
     'salarypage.formula_base': '{hours} hours × {rate} EGP/h',
     'salarypage.formula_overtime': '{hours} hours × {rate} EGP/h',
-    'salarypage.formula_holiday': '{hours} hours × {multiplier} × {rate} EGP/h',
+    'salarypage.formula_holiday': '{hours} additional hours × {rate} EGP/h',
     'salarypage.official_holiday_pay': '+ Official holiday work pay',
     'salarypage.gross_salary': 'Gross pay before deductions',
     'salarypage.manual_deduction': 'Recorded deductions',
