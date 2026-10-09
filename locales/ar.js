@@ -60,6 +60,7 @@
     'clock.aria': 'الساعة الحية — توقيت القاهرة',
 
     // ====== لوحة التحكم ======
+    'dashboard.welcome_ar': 'أهلًا بك في ShiftPro',
     'dashboard.greeting_morning': 'صباح الخير',
     'dashboard.greeting_noon': 'نهارك سعيد',
     'dashboard.greeting_evening': 'مساء الخير',
@@ -451,6 +452,8 @@
     // ====== التاريخ والوقت (قسم جديد) ======
     'settings.datetime_title': 'التاريخ والوقت',
     'settings.datetime_sub': 'الساعة الحية والتقويم الهجري والإجازات الرسمية',
+    'settings.section_more_settings': 'إعدادات إضافية',
+    'settings.section_salary_comp_sub': 'تفاصيل الراتب وطريقة احتسابه',
     'settings.show_clock': 'إظهار الساعة',
     'settings.show_clock_sub': 'ساعة حية في الرئيسية كل ثانية',
     'settings.show_hijri': 'إظهار التاريخ الهجري',
