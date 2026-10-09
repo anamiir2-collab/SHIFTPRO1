@@ -102,6 +102,12 @@
     </div>
   </div>
 
+  <!-- Personalized daily encouragement; message content lives in js/welcome-messages.js -->
+  <aside class="daily-welcome-message" id="dailyWelcomeMessage" hidden>
+    <span class="daily-welcome-message-icon" aria-hidden="true">✦</span>
+    <p id="dailyWelcomeMessageText"></p>
+  </aside>
+
   <div class="row gap-2 mb-3" id="checkinActions">
     <button class="btn-checkin grow" id="checkinBtn" data-i18n-aria="attendance.checkin_now" aria-label="تسجيل حضور">
       <span class="ico">
@@ -1047,6 +1053,7 @@
 <script src="js/salary.js?v=2.3.0"></script>
 <script src="js/reports.js?v=2.3.0"></script>
 <script src="js/settings.js?v=2.3.1"></script>
-<script src="js/app.js?v=2.3.0"></script>
+<script src="js/welcome-messages.js?v=1.0.0"></script>
+<script src="js/app.js?v=2.3.1"></script>
 </body>
 </html>
