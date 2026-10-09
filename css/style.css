@@ -4596,3 +4596,91 @@ button.ios-setting-row .ios-row-value {
 @media (prefers-reduced-motion: reduce) {
   .shift-countdown-progress > span { transition: none; }
 }
+
+
+/* =========================================================
+   ShiftPro — language-aware typography, consistent spacing
+   and clearer icon sizing
+   ========================================================= */
+html[lang="ar"], html[lang="ar"] body,
+:root[dir="rtl"], :root[dir="rtl"] body {
+  font-family: "Cairo", "IBM Plex Sans Arabic", "Noto Sans Arabic", Tahoma, Arial, sans-serif;
+}
+html[lang="en"], :root[dir="ltr"], :root[dir="ltr"] body {
+  font-family: "Cairo", "IBM Plex Sans Arabic", "Segoe UI", Arial, sans-serif;
+}
+body, .page, .card, .stat-card, .settings-section, .settings-control,
+.leave-overview-card, .leave-detail-card, .report-row, .export-item {
+  text-align: start;
+}
+.page > .card,
+.page > .stat-grid,
+.page > .settings-section,
+.page > .settings-control-grid,
+.page > .leave-overview-card {
+  margin-bottom: 14px;
+}
+.page > .card:last-child { margin-bottom: 0; }
+.card, .stat-card, .settings-section, .settings-control,
+.leave-overview-card, .leave-detail-card {
+  min-width: 0;
+}
+.card {
+  padding: 16px;
+  border-radius: 16px;
+}
+.card-title {
+  gap: 10px;
+  line-height: 1.65;
+  letter-spacing: 0;
+  font-size: .9rem;
+  margin-bottom: 14px;
+}
+.stat-grid, .settings-control-grid, .shift-countdown-grid {
+  gap: 12px;
+}
+.stat-card {
+  min-height: 102px;
+  padding: 15px;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.stat-card .label { line-height: 1.6; font-size: .82rem; }
+.stat-card .value { font-size: 1.5rem; line-height: 1.25; }
+.row { min-width: 0; }
+.row > * { min-width: 0; }
+.hint, .muted, .report-row, .settings-section-sub {
+  line-height: 1.75;
+}
+.btn, button, input, select, textarea {
+  line-height: 1.5;
+}
+.btn.sm { min-height: 38px; }
+.icon-btn { width: 46px; height: 46px; }
+.icon-btn svg { width: 24px; height: 24px; }
+.btn svg, .export-item svg { width: 22px; height: 22px; flex: 0 0 auto; }
+.card-title .ico svg { width: 21px; height: 21px; }
+.ico svg { width: 23px; height: 23px; }
+.tabbar .tab-btn .ic svg { width: 25px; height: 25px; }
+.settings-section-head .settings-section-ico { width: 40px; height: 40px; }
+.settings-section-head .settings-section-ico svg { width: 22px; height: 22px; }
+.settings-control-icon { width: 42px; height: 42px; flex-basis: 42px; }
+.settings-control-icon svg { width: 23px; height: 23px; }
+.ios-setting-row .ios-row-icon { width: 36px; height: 36px; }
+.ios-setting-row .ios-row-icon svg { width: 20px; height: 20px; }
+.export-ico { width: 36px; height: 36px; border-radius: 10px; font-size: 16px; }
+.export-item { gap: 14px; padding: 14px 4px; }
+.cal-grid { gap: 8px; }
+.cal-cell { min-width: 0; }
+.report-table-panel { width: 100%; min-width: 0; }
+#reportTableVisibilityPanel { overflow-x: auto; }
+#reportTableVisibilityPanel table { width: 100%; }
+@media (max-width: 380px) {
+  .card { padding: 13px; }
+  .stat-grid, .settings-control-grid, .shift-countdown-grid { gap: 9px; }
+  .stat-card { padding: 12px; min-height: 92px; }
+  .icon-btn { width: 44px; height: 44px; }
+  .card-title .ico svg { width: 20px; height: 20px; }
+}
