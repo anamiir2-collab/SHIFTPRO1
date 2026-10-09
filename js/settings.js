@@ -976,7 +976,7 @@
       const type = types.find(t => t.key === key) || types[0];
       if (!type) { list.innerHTML=''; return; }
 
-      const v = bal[type.key] || {total:0,used:0,remaining:0,carryover:0,carryoverEnabled:false};
+      const v = bal[type.key] || {total:0,used:0,remaining:0,carryover:0,carryoverEnabled:false,carryoverUseEnabled:true};
       const total = Number(v.total) || 0;
       const usedDays = Number(v.used) || 0;
       const remaining = Number(v.remaining != null ? v.remaining : total-usedDays);
@@ -998,7 +998,8 @@
           '<div class="field"><label>'+t('leave.carryover')+'</label><input type="number" min="0" step="0.5" value="'+(Number(v.carryover)||0)+'" data-leave-key="'+type.key+'" data-leave-field="carryover"></div>' +
         '</div>' +
         (useLeavesModule ?
-          '<label class="setting-row" style="margin-top:6px;"><span class="meta"><span class="t1">'+t('leave.carryover_enable')+'</span><span class="t2">'+t('leave.carryover_sub')+'</span></span><span class="switch"><input type="checkbox" '+(v.carryoverEnabled?'checked':'')+' data-leave-key="'+type.key+'" data-leave-field="carryoverEnabled"><span class="slider"></span></span></label>' : '') +
+          '<label class="setting-row" style="margin-top:6px;"><span class="meta"><span class="t1">'+t('leave.carryover_enable')+'</span></span><span class="switch"><input type="checkbox" '+(v.carryoverEnabled?'checked':'')+' data-leave-key="'+type.key+'" data-leave-field="carryoverEnabled"><span class="slider"></span></span></label>' +
+          '<label class="setting-row" style="margin-top:6px;"><span class="meta"><span class="t1">'+t('leave.carryover_sub')+'</span></span><span class="switch"><input type="checkbox" '+(v.carryoverUseEnabled !== false?'checked':'')+' data-leave-key="'+type.key+'" data-leave-field="carryoverUseEnabled"><span class="slider"></span></span></label>' : '') +
         '<p class="hint" style="margin-bottom:0;">'+t('leave.auto_note')+'</p>';
       list.innerHTML='';
       list.appendChild(card);
@@ -1036,6 +1037,7 @@
         total: Number(old.total) || 0,
         carryover: Number(old.carryover) || 0,
         carryoverEnabled: !!old.carryoverEnabled,
+        carryoverUseEnabled: old.carryoverUseEnabled !== false,
         used: 0
       });
     });
@@ -1059,6 +1061,12 @@
       const key = inp.dataset.leaveKey;
       if (Object.prototype.hasOwnProperty.call(bal, key)) {
         bal[key].carryoverEnabled = !!inp.checked;
+      }
+    });
+    document.querySelectorAll('[data-leave-key][data-leave-field="carryoverUseEnabled"]').forEach((inp) => {
+      const key = inp.dataset.leaveKey;
+      if (Object.prototype.hasOwnProperty.call(bal, key)) {
+        bal[key].carryoverUseEnabled = !!inp.checked;
       }
     });
 
