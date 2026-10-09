@@ -25,6 +25,8 @@
     forgetCheckoutHours: 12,    // تنبيه نسيان الانصراف بعد 12 ساعة
     shiftReminder: true,
     shiftReminderMinutes: 30,    // 15/30/60
+    shiftEndReminder: true,
+    upcomingLeaveReminder: true,
     dailySummary: true,
     dailySummaryTime: '20:00',  // 8 مساءً
     lastShown: {}                // {key: timestamp} لمنع التكرار
@@ -152,37 +154,78 @@
     }
   }
 
-  // ---------- تنبيه: تذكير قبل الوردية ----------
+  // ---------- تنبيه: اقتراب بداية الوردية ----------
   function checkShiftReminder() {
     const s = getSettings();
-    if (!s.enabled || !s.shiftReminder) return;
-    if (!global.SPStorage || !global.SPUtils) return;
-    const today = new Date();
-    const tomorrow = new Date(today.getTime() + 86400000);
-    const dstr = SPUtils.fmtDate(tomorrow);
+    if (!s.enabled || !s.shiftReminder || !global.SPStorage || !global.SPUtils) return;
+    const now = new Date();
+    const dstr = SPUtils.fmtDate(now);
     const code = SPStorage.getScheduledCode(dstr);
     if (!code) return;
     const shift = SPStorage.getShiftByCode(code);
-    if (!shift || !shift.startTime || !shift.isWorkDay) return;
+    if (!shift || !shift.startTime || shift.isWorkDay === false) return;
 
-    const nowHHMM = SPUtils.nowHHMM();
-    const shiftStart = shift.startTime;
-    const diffMin = SPUtils.timeDiffMin(nowHHMM, shiftStart);
-    // لو باقي نفس عدد الدقائق المطلوب
-    if (diffMin === s.shiftReminderMinutes) {
-      const key = 'shift_reminder_' + dstr + '_' + diffMin;
-      const last = s.lastShown[key] || 0;
-      if (Date.now() - last > 600000) { // 10 دقايق
-        saveSettings({ lastShown: { [key]: Date.now() } });
-        const title = t('attendance.checkin_now') + ' — ' + shift.name;
-        const body = t('notif.shift_soon_body', {
-          shift: shift.name,
-          min: diffMin,
-          time: SPUtils.fmtTime12(shiftStart)
-        });
-        show(title, body, { tag: 'shift_reminder_' + dstr });
-      }
-    }
+    const startsAt = new Date(dstr + 'T' + shift.startTime + ':00');
+    const remainingMs = startsAt.getTime() - now.getTime();
+    const leadMs = Math.max(1, Number(s.shiftReminderMinutes) || 30) * 60000;
+    if (remainingMs <= 0 || remainingMs > leadMs) return;
+
+    const key = 'shift_reminder_' + dstr;
+    if (s.lastShown[key]) return;
+    saveSettings({ lastShown: { [key]: Date.now() } });
+    show(t('attendance.checkin_now') + ' — ' + shift.name, t('notif.shift_soon_body', {
+      shift: shift.name,
+      min: s.shiftReminderMinutes || 30,
+      time: SPUtils.fmtTime12(shift.startTime)
+    }), { tag: key });
+  }
+
+  // ---------- تنبيه: نهاية الوردية ----------
+  function checkShiftEndReminder() {
+    const s = getSettings();
+    if (!s.enabled || s.shiftEndReminder === false || !global.SPStorage || !global.SPUtils) return;
+    const now = new Date();
+    const dstr = SPUtils.fmtDate(now);
+    const code = SPStorage.getScheduledCode(dstr);
+    if (!code) return;
+    const shift = SPStorage.getShiftByCode(code);
+    if (!shift || !shift.endTime) return;
+
+    const end = new Date(dstr + 'T' + shift.endTime + ':00');
+    if (shift.startTime && shift.endTime <= shift.startTime) end.setDate(end.getDate() + 1);
+    const elapsedMs = now.getTime() - end.getTime();
+    if (elapsedMs < 0 || elapsedMs > 5 * 60000) return;
+
+    const entry = SPStorage.getEntry(dstr);
+    if (entry && entry.to) return;
+    const key = 'shift_end_' + dstr;
+    if (s.lastShown[key]) return;
+    saveSettings({ lastShown: { [key]: Date.now() } });
+    show(t('notif.shift_end_title'), t('notif.shift_end_body', {
+      time: SPUtils.fmtTime12(shift.endTime),
+      shift: shift.name || ''
+    }), { tag: key, requireInteraction: true });
+  }
+
+  // ---------- تنبيه: إجازة معتمدة غدًا ----------
+  function checkUpcomingLeaveReminder() {
+    const s = getSettings();
+    if (!s.enabled || s.upcomingLeaveReminder === false || !global.SPLeaves || !global.SPUtils) return;
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dstr = SPUtils.fmtDate(tomorrow);
+    const requests = typeof SPLeaves.getRequestsForDate === 'function' ? (SPLeaves.getRequestsForDate(dstr) || []) : [];
+    const approved = requests.find((request) => request && request.status === 'approved');
+    if (!approved) return;
+
+    const key = 'upcoming_leave_' + dstr;
+    if (s.lastShown[key]) return;
+    saveSettings({ lastShown: { [key]: Date.now() } });
+    const typeName = typeof SPLeaves.getTypeName === 'function' ? SPLeaves.getTypeName(approved.type) : (approved.type || '');
+    show(t('notif.leave_tomorrow_title'), t('notif.leave_tomorrow_body', {
+      type: typeName,
+      date: dstr
+    }), { tag: key });
   }
 
   // ---------- تنبيه: ملخص يومي ----------
@@ -279,6 +322,8 @@
       try {
         checkForgotCheckout();
         checkShiftReminder();
+        checkShiftEndReminder();
+        checkUpcomingLeaveReminder();
         checkDailySummary();
         checkHolidayReminder();
       } catch (e) {
@@ -289,6 +334,9 @@
     setTimeout(() => {
       try {
         checkForgotCheckout();
+        checkShiftReminder();
+        checkShiftEndReminder();
+        checkUpcomingLeaveReminder();
         checkDailySummary();
         checkHolidayReminder();
       } catch (e) {}
@@ -342,6 +390,8 @@
     show,
     checkForgotCheckout,
     checkShiftReminder,
+    checkShiftEndReminder,
+    checkUpcomingLeaveReminder,
     checkDailySummary,
     checkHolidayReminder,
     checkMissedOnOpen,
