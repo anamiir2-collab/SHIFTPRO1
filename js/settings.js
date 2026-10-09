@@ -1661,6 +1661,8 @@
     const enabled = $('#notifEnabled');
     const shift = $('#notifShiftReminder');
     const mins = $('#notifShiftMinutes');
+    const shiftEnd = $('#notifShiftEndReminder');
+    const leaveReminder = $('#notifUpcomingLeaveReminder');
     const daily = $('#notifDailySummary');
     const dailyTime = $('#notifDailySummaryTime');
     const forget = $('#notifForgetCheckoutHours');
@@ -1668,6 +1670,8 @@
     if (enabled) enabled.checked = !!n.enabled;
     if (shift) shift.checked = n.shiftReminder !== false;
     if (mins) mins.value = String(n.shiftReminderMinutes || 30);
+    if (shiftEnd) shiftEnd.checked = n.shiftEndReminder !== false;
+    if (leaveReminder) leaveReminder.checked = n.upcomingLeaveReminder !== false;
     if (daily) daily.checked = n.dailySummary !== false;
     if (dailyTime) dailyTime.value = n.dailySummaryTime || '20:00';
     if (forget) forget.value = String(n.forgetCheckoutHours || 12);
@@ -1721,6 +1725,8 @@
     const enabled = !!$('#notifEnabled')?.checked;
     const shiftReminder = !!$('#notifShiftReminder')?.checked;
     const shiftReminderMinutes = Number($('#notifShiftMinutes')?.value) || 30;
+    const shiftEndReminder = !!$('#notifShiftEndReminder')?.checked;
+    const upcomingLeaveReminder = !!$('#notifUpcomingLeaveReminder')?.checked;
     const dailySummary = !!$('#notifDailySummary')?.checked;
     const dailySummaryTime = $('#notifDailySummaryTime')?.value || '20:00';
     const forgetCheckoutHours = Number($('#notifForgetCheckoutHours')?.value) || 12;
@@ -1729,6 +1735,8 @@
       enabled,
       shiftReminder,
       shiftReminderMinutes,
+      shiftEndReminder,
+      upcomingLeaveReminder,
       dailySummary,
       dailySummaryTime,
       forgetCheckoutHours
