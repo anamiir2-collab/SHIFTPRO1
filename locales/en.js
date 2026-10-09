@@ -383,7 +383,9 @@
 
     // ====== Settings ======
     'settings.title': 'Settings',
-    'settings.subtitle': 'Employee info, salary, pay cycle and account settings',
+    'settings.subtitle': 'Your basic employee and work information',
+    'settings.section_salary_comp': 'Salary & Calculation',
+    'settings.link_control': 'Language & Appearance',
     'settings.employee': 'Employee info',
     'settings.name_label': 'Name',
     'settings.name_ph': 'Type your name',
