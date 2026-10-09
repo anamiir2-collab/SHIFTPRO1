@@ -384,7 +384,9 @@
 
     // ====== الإعدادات ======
     'settings.title': 'الإعدادات',
-    'settings.subtitle': 'بيانات الموظف والراتب ودورة الصرف وإعدادات الحساب',
+    'settings.subtitle': 'بيانات الموظف الأساسية ومعلومات العمل',
+    'settings.section_salary_comp': 'الراتب والحساب',
+    'settings.link_control': 'اللغة والمظهر',
     'settings.employee': 'بيانات الموظف',
     'settings.name_label': 'الاسم',
     'settings.name_ph': 'اكتب الاسم',
