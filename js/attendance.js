@@ -318,6 +318,20 @@
 
     // ---------- حضور / مطبق ----------
 
+    // While checked in, calculate elapsed time up to this moment instead of
+    // prematurely counting the whole planned shift as completed.
+    if (
+      entry.from &&
+      !entry.to &&
+      (entry.status === 'A' || entry.status === 'X')
+    ) {
+      const startDate = entry.fromDate || SPUtils.fmtDate(new Date());
+      const startedAt = new Date(startDate + 'T' + entry.from + ':00');
+      if (!Number.isNaN(startedAt.getTime())) {
+        return Math.max(0, (Date.now() - startedAt.getTime()) / 3600000);
+      }
+    }
+
     if (
       entry.from &&
       entry.to &&
