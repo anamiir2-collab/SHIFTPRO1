@@ -509,6 +509,29 @@
 
   // ---------- Init ----------
   function init() {
+    // إظهار وإخفاء جدول التقارير فقط، مع حفظ الاختيار على الجهاز
+    const reportTableToggle = $('#toggleReportTableBtn');
+    const reportTablePanel = $('#reportTableVisibilityPanel');
+    if (reportTableToggle && reportTablePanel) {
+      let tableVisible = true;
+      try { tableVisible = localStorage.getItem('spReportTableVisible') !== 'false'; } catch (e) {}
+      const updateReportTableToggle = () => {
+        reportTablePanel.hidden = !tableVisible;
+        reportTableToggle.setAttribute('aria-expanded', String(tableVisible));
+        const isEnglish = global.SPi18n && SPi18n.getLocale() === 'en';
+        reportTableToggle.textContent = isEnglish
+          ? (tableVisible ? 'Hide table' : 'Show table')
+          : (tableVisible ? 'إخفاء الجدول' : 'إظهار الجدول');
+      };
+      reportTableToggle.addEventListener('click', onClickOnce(() => {
+        tableVisible = !tableVisible;
+        try { localStorage.setItem('spReportTableVisible', String(tableVisible)); } catch (e) {}
+        updateReportTableToggle();
+      }));
+      updateReportTableToggle();
+      if (global.SPi18n) SPi18n.subscribe(updateReportTableToggle);
+    }
+
     $('#prevReportBtn').addEventListener('click', onClickOnce(() => SPCalendar.shiftPeriod(-1)));
     $('#nextReportBtn').addEventListener('click', onClickOnce(() => SPCalendar.shiftPeriod(1)));
     // Legacy export buttons are optional after the new unified export menu.
