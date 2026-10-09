@@ -1013,6 +1013,8 @@
 <div class="ios-setting-row static-row"><span class="ios-row-icon"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg></span><span class="ios-row-text"><strong data-i18n="notifsheet.enable_notifs">تفعيل الإشعارات</strong><small data-i18n="notifsheet.enable_notifs_sub">السماح للتطبيق بإظهار التنبيهات</small></span><label class="switch"><input type="checkbox" id="notifEnabled"><span class="slider"></span></label></div>
 <div class="ios-setting-row static-row"><span class="ios-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><path d="M12 7v5l3 2"></path></svg></span><span class="ios-row-text"><strong data-i18n="notifsheet.shift_reminder">تذكير قبل الوردية</strong><small data-i18n="notifsheet.shift_reminder_sub">قبل الوردية بـ 15 أو 30 أو 60 دقيقة</small></span><label class="switch"><input type="checkbox" id="notifShiftReminder"><span class="slider"></span></label></div>
 <div class="field ios-field"><label data-i18n="notifsheet.minutes_label">مدة التذكير قبل الوردية</label><select id="notifShiftMinutes"><option value="15" data-i18n="notifsheet.min_15">15 دقيقة</option><option value="30" data-i18n="notifsheet.min_30">30 دقيقة</option><option value="60" data-i18n="notifsheet.min_60">60 دقيقة</option></select></div>
+<div class="ios-setting-row static-row"><span class="ios-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span><span class="ios-row-text"><strong data-i18n="notifsheet.shift_end_reminder">تذكير نهاية الوردية</strong><small data-i18n="notifsheet.shift_end_reminder_sub">تنبيه عند موعد الانصراف المجدول</small></span><label class="switch"><input type="checkbox" id="notifShiftEndReminder" checked><span class="slider"></span></label></div>
+<div class="ios-setting-row static-row"><span class="ios-row-icon"><svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18"></path><rect x="3" y="4" width="18" height="18" rx="2"></rect></svg></span><span class="ios-row-text"><strong data-i18n="notifsheet.leave_reminder">تذكير بالإجازة القادمة</strong><small data-i18n="notifsheet.leave_reminder_sub">تنبيه قبل يوم من الإجازة المعتمدة</small></span><label class="switch"><input type="checkbox" id="notifUpcomingLeaveReminder" checked><span class="slider"></span></label></div>
 <div class="ios-setting-row static-row"><span class="ios-row-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span><span class="ios-row-text"><strong data-i18n="notifsheet.daily_summary">ملخص اليوم</strong><small data-i18n="notifsheet.daily_summary_sub">ساعاتك والإضافي والقيمة المتوقعة</small></span><label class="switch"><input type="checkbox" id="notifDailySummary"><span class="slider"></span></label></div>
 <div class="field ios-field"><label data-i18n="notifsheet.daily_time_label">وقت ملخص اليوم</label><input type="time" id="notifDailySummaryTime" value="20:00"></div>
 <div class="field ios-field"><label data-i18n="notifsheet.forget_label">التنبيه عند نسيان الانصراف بعد</label><select id="notifForgetCheckoutHours"><option value="8" data-i18n="notifsheet.h_8">8 ساعات</option><option value="10" data-i18n="notifsheet.h_10">10 ساعات</option><option value="12" data-i18n="notifsheet.h_12">12 ساعة</option><option value="16" data-i18n="notifsheet.h_16">16 ساعة</option></select></div></div>
@@ -1075,7 +1077,7 @@
 <script src="js/leaves.js?v=2.3.0"></script>
 <script src="js/shift-templates.js?v=2.3.0"></script>
 <script src="js/undo-redo.js?v=2.3.0"></script>
-<script src="js/smart-notifications.js?v=2.3.0"></script>
+<script src="js/smart-notifications.js?v=2.4.0"></script>
 <script src="js/pdf-export.js?v=2.3.1"></script>
 <script src="js/charts.js?v=2.3.0"></script>
 <script src="js/backup.js?v=2.3.0"></script>
@@ -1083,11 +1085,11 @@
 <script src="js/storage-hybrid.js?v=2.3.0"></script>
 <script src="js/ux-enhancements.js?v=2.3.0"></script>
 <script src="js/ical-export.js?v=2.3.0"></script>
-<script src="js/calendar.js?v=2.3.0"></script>
-<script src="js/attendance.js?v=2.3.1"></script>
+<script src="js/calendar.js?v=2.4.0"></script>
+<script src="js/attendance.js?v=2.4.0"></script>
 <script src="js/salary.js?v=2.3.1"></script>
 <script src="js/reports.js?v=2.3.1"></script>
-<script src="js/settings.js?v=2.3.2"></script>
+<script src="js/settings.js?v=2.4.0"></script>
 <script src="js/welcome-messages.js?v=1.0.0"></script>
 <script src="js/app.js?v=2.3.3"></script>
 </body>
