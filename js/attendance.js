@@ -1280,27 +1280,39 @@
       }
     }
 
-    // ---------- تسجيل حضور سريع ----------
+    // ---------- تسجيل حضور سريع من التقويم ----------
 
     if (
       code === 'A' &&
       !from &&
       !to
     ) {
-      entry.from =
-        nowHHMM();
+      const selectedDate = fmtDate(activeDate);
+      const todayDate = fmtDate(new Date());
 
-      $('#inpFrom').value =
-        entry.from;
+      if (selectedDate === todayDate) {
+        // اليوم الحالي: ابدأ حساب الوقت الفعلي من لحظة الضغط.
+        entry.from = nowHHMM();
+        entry.fromDate = selectedDate;
+        $('#inpFrom').value = entry.from;
+        if ($('#inpFromDate')) $('#inpFromDate').value = selectedDate;
+      } else {
+        // اليوم السابق: استخدم وقت الوردية المجدولة بدل وقت الساعة الحالي.
+        // إذا لم توجد وردية، يحتسب التطبيق ساعات الوردية من الإعدادات.
+        const scheduledCode = storage.getScheduledCode(selectedDate);
+        const scheduledShift = scheduledCode ? storage.getShiftByCode(scheduledCode) : null;
 
-      if (
-        $('#inpFromDate') &&
-        !$('#inpFromDate').value
-      ) {
-        $('#inpFromDate').value =
-          fmtDate(
-            activeDate
-          );
+        if (scheduledShift && scheduledShift.startTime && scheduledShift.endTime) {
+          entry.from = scheduledShift.startTime;
+          entry.to = scheduledShift.endTime;
+          entry.fromDate = selectedDate;
+          const overnight = scheduledShift.endTime <= scheduledShift.startTime;
+          entry.toDate = overnight ? fmtDate(addDays(activeDate, 1)) : selectedDate;
+          $('#inpFrom').value = entry.from;
+          $('#inpTo').value = entry.to;
+          if ($('#inpFromDate')) $('#inpFromDate').value = entry.fromDate;
+          if ($('#inpToDate')) $('#inpToDate').value = entry.toDate;
+        }
       }
     }
 
