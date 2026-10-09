@@ -93,7 +93,7 @@
   // General settings sheet
   // =========================================================
 
-  function openSettingsSheet() {
+  function openSettingsSheet(target = 'settings') {
     const s = storage.getSettings();
 
     $('#inpName').value = s.name || '';
@@ -145,18 +145,30 @@
     const fontSizeInput = $('#inpFontSize');
     if (fontSizeInput) fontSizeInput.value = s.fontSize || 'medium';
 
-    const overlayEl = $('#settingsOverlay');
-    const sheetEl = $('#settingsSheet');
+    const isSalary = target === 'salarySettings';
+    const overlayEl = $(isSalary ? '#salarySettingsOverlay' : '#settingsOverlay');
+    const sheetEl = $(isSalary ? '#salarySettingsSheet' : '#settingsSheet');
     if (overlayEl) overlayEl.classList.add('show');
     if (sheetEl) sheetEl.classList.add('show');
 
-    // Focus first field for accessibility / keyboard users
+    // Focus the selected sheet at its top for accessibility.
     try { sheetEl && sheetEl.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
   }
 
   function closeSettingsSheet() {
     const overlayEl = $('#settingsOverlay');
     const sheetEl = $('#settingsSheet');
+    if (overlayEl) overlayEl.classList.remove('show');
+    if (sheetEl) sheetEl.classList.remove('show');
+    const salaryOverlay = $('#salarySettingsOverlay');
+    const salarySheet = $('#salarySettingsSheet');
+    if (salaryOverlay) salaryOverlay.classList.remove('show');
+    if (salarySheet) salarySheet.classList.remove('show');
+  }
+
+  function closeSalarySettingsSheet() {
+    const overlayEl = $('#salarySettingsOverlay');
+    const sheetEl = $('#salarySettingsSheet');
     if (overlayEl) overlayEl.classList.remove('show');
     if (sheetEl) sheetEl.classList.remove('show');
   }
@@ -232,6 +244,7 @@
 
     applyTheme();
     closeSettingsSheet();
+    closeSalarySettingsSheet();
 
     toast(t('settings.saved_toast'), 'success');
 
@@ -1822,7 +1835,11 @@
         break;
 
       case 'settings':
-        openSettingsSheet();
+        openSettingsSheet('settings');
+        break;
+
+      case 'salarySettings':
+        openSettingsSheet('salarySettings');
         break;
 
       case 'notifications':
@@ -1925,6 +1942,9 @@
     bind('#saveSettingsBtn', 'click', onClickOnce(saveSettings));
     bind('#closeSettingsBtn', 'click', closeSettingsSheet);
     bind('#settingsOverlay', 'click', closeSettingsSheet);
+    bind('#saveSalarySettingsBtn', 'click', onClickOnce(saveSettings));
+    bind('#closeSalarySettingsBtn', 'click', closeSalarySettingsSheet);
+    bind('#salarySettingsOverlay', 'click', closeSalarySettingsSheet);
 
     // Shifts
     bind('#addShiftBtn', 'click', onClickOnce(() => openShiftEditor(null)));
