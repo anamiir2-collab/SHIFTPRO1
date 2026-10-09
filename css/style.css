@@ -4719,9 +4719,7 @@ html[dir="ltr"] body .export-item {
 html[dir="rtl"] body .ta-c,
 html[dir="ltr"] body .ta-c,
 html[dir="rtl"] body .text-center,
-html[dir="ltr"] body .text-center,
-html[dir="rtl"] body .stat-card .value,
-html[dir="ltr"] body .stat-card .value {
+html[dir="ltr"] body .text-center {
   text-align: center;
 }
 html[dir="rtl"] body input:not([type="date"]):not([type="time"]):not([type="number"]):not([type="checkbox"]):not([type="radio"]),
