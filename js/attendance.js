@@ -1307,7 +1307,9 @@
           entry.to = scheduledShift.endTime;
           entry.fromDate = selectedDate;
           const overnight = scheduledShift.endTime <= scheduledShift.startTime;
-          entry.toDate = overnight ? fmtDate(addDays(activeDate, 1)) : selectedDate;
+          const nextDate = new Date(activeDate);
+          nextDate.setDate(nextDate.getDate() + 1);
+          entry.toDate = overnight ? fmtDate(nextDate) : selectedDate;
           $('#inpFrom').value = entry.from;
           $('#inpTo').value = entry.to;
           if ($('#inpFromDate')) $('#inpFromDate').value = entry.fromDate;
