@@ -4684,3 +4684,49 @@ body, .page, .card, .stat-card, .settings-section, .settings-control,
   .icon-btn { width: 44px; height: 44px; }
   .card-title .ico svg { width: 20px; height: 20px; }
 }
+
+
+/* Explicit text alignment follows the selected application language. */
+html[dir="rtl"] body,
+html[dir="rtl"] body .page,
+html[dir="rtl"] body .card,
+html[dir="rtl"] body .stat-card,
+html[dir="rtl"] body .card-title,
+html[dir="rtl"] body .hint,
+html[dir="rtl"] body .field label,
+html[dir="rtl"] body .ios-row-text,
+html[dir="rtl"] body .settings-section,
+html[dir="rtl"] body .settings-control,
+html[dir="rtl"] body .report-disclosure-content,
+html[dir="rtl"] body .export-item {
+  text-align: right;
+}
+html[dir="ltr"] body,
+html[dir="ltr"] body .page,
+html[dir="ltr"] body .card,
+html[dir="ltr"] body .stat-card,
+html[dir="ltr"] body .card-title,
+html[dir="ltr"] body .hint,
+html[dir="ltr"] body .field label,
+html[dir="ltr"] body .ios-row-text,
+html[dir="ltr"] body .settings-section,
+html[dir="ltr"] body .settings-control,
+html[dir="ltr"] body .report-disclosure-content,
+html[dir="ltr"] body .export-item {
+  text-align: left;
+}
+/* Preserve intentionally centered UI and numeric/time values. */
+html[dir="rtl"] body .ta-c,
+html[dir="ltr"] body .ta-c,
+html[dir="rtl"] body .text-center,
+html[dir="ltr"] body .text-center,
+html[dir="rtl"] body .stat-card .value,
+html[dir="ltr"] body .stat-card .value {
+  text-align: center;
+}
+html[dir="rtl"] body input:not([type="date"]):not([type="time"]):not([type="number"]):not([type="checkbox"]):not([type="radio"]),
+html[dir="rtl"] body textarea,
+html[dir="rtl"] body select { text-align: right; }
+html[dir="ltr"] body input:not([type="date"]):not([type="time"]):not([type="number"]):not([type="checkbox"]):not([type="radio"]),
+html[dir="ltr"] body textarea,
+html[dir="ltr"] body select { text-align: left; }
