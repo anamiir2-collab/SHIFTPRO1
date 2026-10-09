@@ -885,7 +885,10 @@
     });
 
     const holidayRow = document.getElementById('pOfficialHolidayValueRow');
-    if (holidayRow) holidayRow.hidden = !(result.officialHolidayValue > 0);
+    const holidayFormulaRow = document.getElementById('pOfficialHolidayFormulaRow');
+    const showHolidayPay = result.officialHolidayValue > 0;
+    if (holidayRow) holidayRow.hidden = !showHolidayPay;
+    if (holidayFormulaRow) holidayFormulaRow.hidden = !showHolidayPay;
     const holidayFormula = document.getElementById('pOfficialHolidayFormula');
     if (holidayFormula) {
       holidayFormula.textContent = t('salarypage.formula_holiday', {
