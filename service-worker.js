@@ -4,7 +4,7 @@
    - runtime: network-first for navigations, cache-first for static assets
    - cleanup: drop old caches on activate
 */
-const SW_VERSION = 'shifpro-v2.5.3';
+const SW_VERSION = 'shifpro-v2.5.4-law';
 const APP_SHELL = [
   './',
   './index.html',
@@ -12,6 +12,7 @@ const APP_SHELL = [
   './css/style.css',
   './css/animations.css',
   './css/ios-style.css',
+  './css/law-reader.css',
   // ملفات i18n (مهمة للتشغيل الأول)
   './locales/ar.js',
   './locales/en.js',
@@ -37,7 +38,29 @@ const APP_SHELL = [
   './js/salary.js',
   './js/reports.js',
   './js/settings.js',
+  './js/welcome-messages.js',
   './js/app.js',
+  // ====== Egyptian Labor Law dataset + reader ======
+  // Dataset: order matters only at runtime (script tags in index.html);
+  // for caching the order is irrelevant.
+  './js/law-reader.js',
+  './js/data/law-data.js',
+  './js/data/book-1-chapter-1.js',
+  './js/data/book-1-chapter-2.js',
+  './js/data/book-2-chapter-1.js',
+  './js/data/book-2-chapter-2.js',
+  './js/data/book-2-chapter-3.js',
+  './js/data/book-3-chapter-1.js',
+  './js/data/book-3-chapter-2.js',
+  './js/data/book-3-chapter-3.js',
+  './js/data/book-4-articles.js',
+  './js/data/book-4-chapter-1.js',
+  './js/data/book-4-chapter-2.js',
+  './js/data/book-4-chapter-3.js',
+  './js/data/book-4-chapter-4.js',
+  './js/data/book-4-chapter-5.js',
+  './js/data/book-5-chapter-1.js',
+  './js/data/book-5-chapter-2.js',
   // أيقونات PWA
   './icon-192.png',
   './icon-512.png',
@@ -93,7 +116,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(SW_VERSION).then((c) => c.put('./index.html', copy)).catch(()=>{});
           return res;
         })
-        .catch(() => caches.match(req).then((cached) => cached || caches.match('./index.html'))
+        .catch(() => caches.match(req).then((cached) => cached || caches.match('./index.html')))
     );
     return;
   }

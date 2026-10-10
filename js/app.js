@@ -26,6 +26,13 @@
 
   // ---------- Navigation ----------
   function goToTab(tab) {
+    // If leaving the law tab, deactivate its reader (unbind listeners,
+    // clear body[data-law-active], close drawer).
+    const wasLawActive = document.body.dataset.lawActive === '1';
+    if (wasLawActive && tab !== 'law' && window.SPLaw) {
+      try { window.SPLaw.deactivate(); } catch (e) { console.warn('[SPLaw] deactivate error', e); }
+    }
+
     document.querySelectorAll('.tab-btn').forEach((b) => {
       b.classList.toggle('active', b.dataset.tab === tab);
     });
@@ -37,6 +44,10 @@
     if (tab === 'calendar') SPCalendar.renderCalendar();
     if (tab === 'salary') SPSalary.render();
     if (tab === 'reports') SPReports.render();
+    // Activate the scoped law reader when entering its tab.
+    if (tab === 'law' && window.SPLaw) {
+      try { window.SPLaw.activate(); } catch (e) { console.warn('[SPLaw] activate error', e); }
+    }
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -673,6 +684,15 @@ function setupInstallPrompt() {
     document.querySelectorAll('.tab-btn').forEach((btn) => {
       btn.addEventListener('click', onClickOnce(() => goToTab(btn.dataset.tab)));
     });
+
+    // More-page card: opens the scoped Egyptian Labor Law reader.
+    // This button intentionally does NOT use data-sheet (which would
+    // route through openSheetByName); instead it switches to the law
+    // tab so the reader gets a full-screen experience.
+    const laborLawBtn = document.getElementById('moreLaborLawBtn');
+    if (laborLawBtn) {
+      laborLawBtn.addEventListener('click', onClickOnce(() => goToTab('law')));
+    }
 
     // Search
     $('#searchBtn').addEventListener('click', onClickOnce(openSearch));
