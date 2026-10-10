@@ -1031,3 +1031,14 @@ body[data-law-active="1"] {
   }
   #page-law .paper { box-shadow: none; border: none; }
 }
+
+
+/* Keep the labor-law index completely out of view until the user opens it. */
+#page-law .law-toc:not(.open) {
+  visibility: hidden;
+  pointer-events: none;
+}
+#page-law .law-toc.open {
+  visibility: visible;
+  pointer-events: auto;
+}
